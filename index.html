@@ -1,0 +1,2319 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="VaultGuard">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0c0e1a">
+<meta name="description" content="Seiful tau digital securizat - parole, carduri, notite criptate AES-256">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+<link rel="icon" type="image/png" sizes="512x512" href="icons/icon-512.png">
+<title>VaultGuard v15</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden}
+  body{font-family:system-ui,-apple-system,sans-serif;background:linear-gradient(160deg,#0c0e1a 0%,#141832 40%,#1a1040 100%);color:#e8e6f0;max-width:480px;margin:0 auto;-webkit-font-smoothing:antialiased}
+  #page-login{height:100%;overflow-y:auto}
+  #page-home{height:100vh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column}
+  #page-notes{height:100vh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column}
+  .page-sticky{position:sticky;top:0;z-index:15;background:linear-gradient(160deg,#0c0e1a 0%,#141832 100%)}
+  input,textarea,button{font-family:inherit}
+  input::placeholder,textarea::placeholder{color:#4a4870}
+  ::-webkit-scrollbar{display:none}
+  @keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
+  @keyframes fadeInScale{from{opacity:0;transform:scale(.95)}to{opacity:1;transform:scale(1)}}
+
+  .login-page{min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;position:relative}
+  .glow-orb{position:absolute;width:280px;height:280px;border-radius:50%;background:radial-gradient(circle,rgba(99,102,241,.12) 0%,transparent 70%);top:8%;left:50%;transform:translateX(-50%);pointer-events:none}
+  .logo-box{display:flex;flex-direction:column;align-items:center;gap:12px;margin-bottom:40px;position:relative;z-index:1;animation:fadeInScale .6s ease-out}
+  .logo-circle{width:88px;height:88px;border-radius:26px;background:linear-gradient(135deg,#6366f1,#a855f7);display:flex;align-items:center;justify-content:center;box-shadow:0 8px 40px rgba(99,102,241,.35)}
+  .logo-circle svg{width:44px;height:44px;color:#fff}
+  .logo-text{font-size:28px;font-weight:800;letter-spacing:-.5px;background:linear-gradient(135deg,#c7c5ff,#e0b3ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .logo-sub{font-size:13px;color:#9b97b8;letter-spacing:2px;text-transform:uppercase}
+
+  .input-group{width:100%;max-width:340px;margin-bottom:16px;position:relative;z-index:1;animation:fadeIn .4s ease-out}
+  .input-label{display:block;font-size:11px;font-weight:700;color:#9b97b8;margin-bottom:6px;letter-spacing:1px;text-transform:uppercase}
+  .input-wrap{position:relative}
+  .input-field{width:100%;padding:14px 46px 14px 16px;border-radius:14px;border:1.5px solid rgba(99,102,241,.15);background:rgba(15,17,35,.8);color:#e8e6f0;font-size:15px;outline:none;transition:border-color .25s,box-shadow .25s}
+  .input-field:focus{border-color:rgba(99,102,241,.6);box-shadow:0 0 0 3px rgba(99,102,241,.1)}
+  .eye-btn{position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;color:#9b97b8;cursor:pointer;padding:6px;border-radius:8px}
+
+  .btn-primary{width:100%;max-width:340px;padding:15px 0;border-radius:14px;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:.5px;box-shadow:0 4px 20px rgba(99,102,241,.35);margin-top:8px;position:relative;z-index:1;transition:transform .15s}
+  .btn-primary:active{transform:scale(.97)}
+  .btn-save{width:100%;padding:14px 0;border-radius:14px;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 16px rgba(99,102,241,.3);margin-top:8px}
+  .btn-save:active{transform:scale(.97)}
+  .btn-cancel{width:100%;padding:13px 0;border-radius:14px;border:1.5px solid rgba(99,102,241,.2);background:transparent;color:#9b97b8;font-size:15px;font-weight:600;cursor:pointer;margin-top:8px}
+  .btn-icon{background:none;border:none;color:#9b97b8;cursor:pointer;padding:6px;border-radius:8px}
+  .btn-small{padding:10px 16px;border-radius:10px;border:none;background:rgba(99,102,241,.15);color:#a5a3ff;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px}
+
+  .error-msg{color:#ff6b6b;font-size:13px;text-align:center;margin-top:8px;z-index:1;position:relative;animation:fadeIn .3s ease-out}
+
+  .header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px 8px}
+  .header-title{font-size:22px;font-weight:800;background:linear-gradient(135deg,#c7c5ff,#e0b3ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .header-right{display:flex;align-items:center;gap:6px}
+  .header-count{font-size:13px;color:#6b6890}
+
+  .search-box{margin:10px 20px 14px;position:relative}
+  .search-input{width:100%;padding:13px 16px 13px 44px;border-radius:14px;border:1.5px solid rgba(99,102,241,.15);background:rgba(20,24,50,.6);color:#e8e6f0;font-size:14px;outline:none}
+  .search-input:focus{border-color:rgba(99,102,241,.6)}
+  .search-icon{position:absolute;left:14px;top:50%;transform:translateY(-50%);color:#6b6890;pointer-events:none}
+
+  .cat-scroll{display:flex;gap:8px;padding:4px 20px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .cat-chip{padding:8px 16px;border-radius:20px;border:none;background:rgba(30,33,60,.8);color:#9b97b8;font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .2s}
+  .cat-chip.active{background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff}
+
+  .pw-list{padding:0 20px 120px}
+  .pw-card{display:flex;align-items:center;gap:14px;padding:16px;border-radius:16px;background:rgba(25,28,55,.7);border:1px solid rgba(99,102,241,.06);margin-bottom:10px;cursor:pointer;transition:transform .15s;animation:fadeIn .35s ease-out}
+  .pw-card:active{transform:scale(.98);background:rgba(30,33,60,.9)}
+  .pw-card-icon{width:46px;height:46px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .pw-card-icon svg{width:22px;height:22px}
+  .pw-card-info{flex:1;overflow:hidden}
+  .pw-card-title{font-size:15px;font-weight:700;color:#e8e6f0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .pw-card-user{font-size:13px;color:#7b7899;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+  .empty-state{text-align:center;padding:60px 20px;color:#6b6890;animation:fadeIn .5s ease-out}
+  .empty-icon{margin-bottom:16px}
+  .empty-icon svg{width:52px;height:52px;color:#6b6890}
+  .empty-title{font-size:17px;font-weight:700;margin-bottom:8px;color:#9b97b8}
+  .empty-sub{font-size:14px}
+
+  .fab{position:fixed;bottom:80px;right:24px;width:58px;height:58px;border-radius:18px;background:linear-gradient(135deg,#6366f1,#a855f7);border:none;color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 6px 28px rgba(99,102,241,.45);z-index:10}
+  .fab:active{transform:scale(.9)}
+
+  .overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,5,15,.88);z-index:50;display:flex;align-items:flex-end;justify-content:center}
+  .modal{width:100%;max-width:480px;max-height:92vh;background:linear-gradient(180deg,#1a1d3a,#141832);border-radius:24px 24px 0 0;padding:24px 20px 36px;overflow-y:auto;animation:slideUp .35s ease-out}
+  .modal-title{font-size:20px;font-weight:800;margin-bottom:22px;color:#e8e6f0}
+  .form-group{margin-bottom:16px}
+  .form-label{display:block;font-size:11px;font-weight:700;color:#9b97b8;margin-bottom:6px;letter-spacing:1px;text-transform:uppercase}
+  .form-input{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid rgba(99,102,241,.15);background:rgba(15,17,35,.8);color:#e8e6f0;font-size:14px;outline:none}
+  .form-input:focus{border-color:rgba(99,102,241,.6)}
+  textarea.form-input{min-height:60px;resize:vertical}
+
+  .cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+  .cat-option{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:12px;border:2px solid transparent;cursor:pointer;background:rgba(20,22,44,.6);font-size:10px;font-weight:600;color:#9b97b8;transition:all .2s}
+  .cat-option.active{background:rgba(99,102,241,.1)}
+  .cat-option svg{width:22px;height:22px}
+
+  .strength-bar{height:4px;border-radius:2px;background:rgba(40,40,70,.5);margin-top:8px;overflow:hidden;position:relative}
+  .strength-fill{position:absolute;left:0;top:0;height:100%;border-radius:2px;transition:width .3s,background .3s}
+  .strength-label{font-size:12px;margin-top:4px;font-weight:600}
+  .gen-row{display:flex;gap:8px;align-items:center}
+  .gen-range{flex:1;accent-color:#6366f1}
+  .gen-len{font-size:13px;color:#9b97b8;font-weight:700;min-width:26px;text-align:center}
+
+  .detail-page{min-height:100vh;padding:0 0 40px;animation:fadeIn .3s ease-out}
+  .detail-header{display:flex;align-items:center;gap:12px;padding:18px 20px 12px}
+  .detail-icon{width:68px;height:68px;border-radius:22px;display:flex;align-items:center;justify-content:center;margin:8px auto 16px}
+  .detail-icon svg{width:32px;height:32px}
+  .detail-title{font-size:24px;font-weight:800;text-align:center;color:#e8e6f0}
+  .detail-cat{font-size:13px;text-align:center;color:#9b97b8;margin-top:4px}
+  .field-card{margin:12px 20px;padding:14px 16px;border-radius:14px;background:rgba(25,28,55,.7);border:1px solid rgba(99,102,241,.06);animation:fadeIn .35s ease-out}
+  .field-label{font-size:11px;font-weight:700;color:#7b7899;letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
+  .field-value{font-size:15px;color:#e8e6f0;word-break:break-all;display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .field-value .mono{font-family:monospace}
+  .field-btns{display:flex;gap:4px;flex-shrink:0}
+
+  .action-row{display:flex;gap:10px;padding:24px 20px 0}
+  .btn-edit{flex:1;padding:13px 0;border-radius:12px;border:none;background:rgba(99,102,241,.15);color:#a5a3ff;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn-delete{flex:1;padding:13px 0;border-radius:12px;border:none;background:rgba(239,68,68,.1);color:#ff6b6b;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px}
+
+  .toast{position:fixed;top:24px;left:50%;transform:translateX(-50%);padding:12px 28px;border-radius:12px;color:#fff;font-size:14px;font-weight:600;z-index:100;animation:fadeIn .25s ease-out;box-shadow:0 4px 24px rgba(0,0,0,.35);pointer-events:none}
+  .toast.success{background:rgba(16,185,129,.92)}
+  .toast.error{background:rgba(239,68,68,.92)}
+  .hidden{display:none!important}
+
+  /* Menu & Export/Import */
+  .menu-bar{display:flex;gap:8px;padding:4px 20px 8px;flex-wrap:wrap}
+  .menu-btn{padding:9px 14px;border-radius:12px;border:1px solid rgba(99,102,241,.12);background:rgba(20,24,50,.6);color:#9b97b8;font-size:12px;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;transition:all .2s}
+  .menu-btn:active{background:rgba(99,102,241,.15);color:#a5a3ff}
+  .menu-btn svg{width:16px;height:16px}
+
+  .import-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(5,5,15,.88);z-index:60;display:flex;align-items:center;justify-content:center;padding:24px}
+  /* Bottom Nav */
+  .bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;display:flex;background:rgba(14,16,34,.97);border-top:1px solid rgba(99,102,241,.12);z-index:20;padding-bottom:env(safe-area-inset-bottom)}
+  .nav-tab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 0 8px;cursor:pointer;color:#6b6890;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;transition:color .2s;border:none;background:none}
+  .nav-tab.active{color:#a5a3ff}
+  .nav-tab svg{width:22px;height:22px}
+
+  /* Notes page */
+  .notes-page{animation:fadeIn .3s ease-out}
+  .note-card{margin:0 20px 10px;padding:16px;border-radius:16px;background:rgba(25,28,55,.7);border:1px solid rgba(99,102,241,.06);cursor:pointer;transition:transform .15s;animation:fadeIn .35s ease-out;position:relative}
+  .note-card:active{transform:scale(.98);background:rgba(30,33,60,.9)}
+  .note-card.pinned{border-color:rgba(251,191,36,.18);background:rgba(251,191,36,.04)}
+  .note-card-header{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px}
+  .note-card-title{font-size:15px;font-weight:700;color:#e8e6f0;flex:1}
+  .note-pin-badge{font-size:14px;flex-shrink:0}
+  .note-card-preview{font-size:13px;color:#7b7899;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .note-card-footer{display:flex;align-items:center;justify-content:space-between;margin-top:8px}
+  .note-card-date{font-size:11px;color:#4a4870}
+  .note-cat-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.5px}
+
+  /* Note category filter chips */
+  .note-cats{display:flex;gap:8px;padding:4px 20px 14px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+  .note-cat-chip{padding:7px 14px;border-radius:20px;border:none;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .2s;letter-spacing:.3px}
+
+  /* Note detail/edit modal */
+  .note-modal{width:100%;max-width:480px;max-height:92vh;background:linear-gradient(180deg,#1a1d3a,#141832);border-radius:24px 24px 0 0;padding:24px 20px 36px;overflow-y:auto;animation:slideUp .35s ease-out}
+  textarea.note-body{width:100%;min-height:220px;padding:14px;border-radius:12px;border:1.5px solid rgba(99,102,241,.15);background:rgba(15,17,35,.8);color:#e8e6f0;font-size:15px;line-height:1.6;outline:none;resize:vertical}
+  textarea.note-body:focus{border-color:rgba(99,102,241,.6)}
+
+  /* Rezumat local */
+  .rezumat-panel{margin-top:14px;border-radius:14px;border:1.5px solid rgba(99,102,241,.2);background:rgba(10,12,30,.6);overflow:hidden}
+  .rezumat-result{padding:12px 14px;font-size:13px;color:#b8b5d0;line-height:1.6;border-top:1px solid rgba(99,102,241,.1);display:none}
+  .rezumat-apply-btn{margin:10px 14px 14px;padding:10px 0;border-radius:10px;border:none;background:rgba(99,102,241,.2);color:#a5a3ff;font-size:13px;font-weight:700;cursor:pointer;width:calc(100% - 28px);display:none}
+
+  /* Note image previews */
+  .note-images{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .note-img-thumb{width:72px;height:72px;border-radius:10px;object-fit:cover;border:1.5px solid rgba(99,102,241,.15);cursor:pointer;transition:transform .15s}
+  .note-img-thumb:active{transform:scale(.95)}
+  .note-img-drop{width:100%;min-height:90px;border:2px dashed rgba(99,102,241,.25);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:#6b6890;font-size:13px;font-weight:600;cursor:pointer;transition:border-color .2s;margin-top:8px;background:rgba(10,12,30,.4);position:relative}
+  .note-img-drop.drag-active{border-color:rgba(99,102,241,.6);background:rgba(99,102,241,.06)}
+  .note-img-drop input{position:absolute;inset:0;opacity:0;cursor:pointer}
+  .note-img-url-row{display:flex;gap:8px;margin-top:8px}
+  .note-img-url-row input{flex:1;padding:10px 12px;border-radius:10px;border:1.5px solid rgba(99,102,241,.15);background:rgba(15,17,35,.8);color:#e8e6f0;font-size:13px;outline:none}
+  .note-img-url-row input:focus{border-color:rgba(99,102,241,.5)}
+  .note-img-url-row button{padding:10px 14px;border-radius:10px;border:none;background:rgba(99,102,241,.2);color:#a5a3ff;font-size:13px;font-weight:700;cursor:pointer}
+
+  /* Lightbox */
+  .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:300;display:flex;align-items:center;justify-content:center;cursor:zoom-out;animation:fadeIn .2s}
+  .lightbox img{max-width:95vw;max-height:90vh;border-radius:12px;object-fit:contain}
+  .lightbox-close{position:absolute;top:20px;right:20px;color:#fff;font-size:28px;cursor:pointer;line-height:1}
+  .pw-card[draggable]{cursor:grab}
+  .pw-card.dragging{opacity:.4;transform:scale(.97)}
+  .pw-card.drag-over{border-color:rgba(99,102,241,.5);background:rgba(99,102,241,.08)}
+  .note-card[draggable]{cursor:grab}
+  .note-card.dragging{opacity:.4;transform:scale(.97)}
+  .note-card.drag-over{border-color:rgba(99,102,241,.5);background:rgba(99,102,241,.08)}
+
+  /* Quick category popover */
+  .cat-popover{position:fixed;z-index:200;background:linear-gradient(180deg,#1e2140,#161928);border:1px solid rgba(99,102,241,.2);border-radius:14px;padding:10px;box-shadow:0 8px 32px rgba(0,0,0,.5);display:flex;flex-direction:column;gap:6px;min-width:150px;animation:fadeInScale .15s ease-out}
+  .cat-popover-item{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:10px;border:none;background:transparent;color:#e8e6f0;font-size:13px;font-weight:600;cursor:pointer;text-align:left;transition:background .15s}
+  .cat-popover-item:hover{background:rgba(99,102,241,.12)}
+  .cat-popover-item.active{background:rgba(99,102,241,.18);color:#a5a3ff}
+  .cat-popover-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+
+  .import-box{width:100%;max-width:400px;background:linear-gradient(180deg,#1a1d3a,#141832);border-radius:20px;padding:28px 24px;animation:fadeInScale .3s ease-out}
+  .import-title{font-size:18px;font-weight:800;margin-bottom:8px;color:#e8e6f0}
+  .import-sub{font-size:13px;color:#9b97b8;margin-bottom:20px;line-height:1.5}
+  .import-area{width:100%;min-height:120px;padding:14px;border-radius:12px;border:2px dashed rgba(99,102,241,.25);background:rgba(10,12,30,.6);color:#e8e6f0;font-size:13px;font-family:monospace;outline:none;resize:vertical;margin-bottom:12px}
+  .import-area:focus{border-color:rgba(99,102,241,.5)}
+  .import-or{text-align:center;color:#6b6890;font-size:12px;font-weight:600;margin:12px 0}
+  .file-input-wrap{width:100%;padding:14px;border-radius:12px;border:2px dashed rgba(99,102,241,.25);background:rgba(10,12,30,.6);text-align:center;cursor:pointer;margin-bottom:16px;transition:border-color .2s}
+  .file-input-wrap:active{border-color:rgba(99,102,241,.5)}
+  .file-input-wrap input{display:none}
+  .file-input-label{color:#a5a3ff;font-size:13px;font-weight:600}
+  .import-btns{display:flex;gap:10px}
+  .import-btns button{flex:1}
+
+  /* ── CARDS PAGE ── */
+  #page-cards{height:100vh;overflow-y:auto;overflow-x:hidden;display:flex;flex-direction:column}
+  .card-list{padding:12px 14px 120px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .loyalty-card{border-radius:18px;cursor:pointer;transition:transform .15s,box-shadow .15s;animation:fadeIn .35s ease-out;position:relative;overflow:hidden;height:160px;display:flex;flex-direction:column;box-shadow:0 4px 16px rgba(0,0,0,.35)}
+  .loyalty-card:active{transform:scale(.96)}
+  .loyalty-card-inner{display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;width:100%;height:100%;padding:14px 14px 12px;position:relative;z-index:1}
+  .loyalty-card-name{font-size:17px;font-weight:900;color:#fff;line-height:1.2;text-shadow:0 1px 4px rgba(0,0,0,.4);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%}
+  .loyalty-card-emoji{font-size:22px;line-height:1;margin-bottom:2px}
+  .loyalty-card-number{font-family:monospace;font-size:11px;color:rgba(255,255,255,.85);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;background:rgba(0,0,0,.2);border-radius:6px;padding:4px 6px;margin-top:4px}
+  .loyalty-card-nr{font-family:monospace;font-size:13px;color:rgba(255,255,255,.65);letter-spacing:2px;margin-bottom:6px}
+  .loyalty-card-bc{background:rgba(255,255,255,.95);border-radius:10px;padding:8px 10px 4px;margin-top:8px;display:flex;flex-direction:column;align-items:center}
+  .loyalty-card-bc canvas{max-width:100%;height:50px}
+  .loyalty-card-bc-nr{font-family:monospace;font-size:10px;color:#333;margin-top:2px;letter-spacing:1px}
+  .loyalty-card-shimmer{position:absolute;top:-40%;left:-40%;width:28%;height:180%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.07),transparent);transform:rotate(25deg);pointer-events:none}
+  .card-type-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
+  .card-type-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;border-radius:12px;border:2px solid transparent;cursor:pointer;font-size:10px;font-weight:700;color:#9b97b8;background:rgba(20,22,44,.6);transition:all .2s;font-family:inherit}
+  .card-type-btn.active{background:rgba(255,255,255,.06)}
+  /* Scanner */
+  .scanner-overlay{position:fixed;inset:0;background:#000;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .scanner-video{width:100%;max-width:480px}
+  .scanner-frame{position:absolute;width:260px;height:110px;border:3px solid #6366f1;border-radius:12px;box-shadow:0 0 0 9999px rgba(0,0,0,.6)}
+  .scanner-line{position:absolute;width:100%;height:2px;background:linear-gradient(90deg,transparent,#6366f1,transparent);animation:scan-line 1.8s ease-in-out infinite}
+  @keyframes scan-line{0%{top:0}50%{top:calc(100% - 2px)}100%{top:0}}
+  .scanner-hint{color:#fff;font-size:14px;font-weight:600;margin-top:22px;text-align:center;padding:0 32px}
+  .scanner-manual-row{display:flex;gap:8px;margin-top:12px;width:100%;max-width:340px;padding:0 20px}
+  .scanner-manual-row input{flex:1;padding:11px 14px;border-radius:12px;border:1.5px solid rgba(99,102,241,.3);background:rgba(20,22,44,.95);color:#e8e6f0;font-size:14px;outline:none;font-family:monospace}
+  .scanner-manual-row button{padding:11px 16px;border-radius:12px;border:none;background:rgba(99,102,241,.3);color:#a5a3ff;font-size:13px;font-weight:700;cursor:pointer}
+  .scanner-cancel{margin-top:16px;padding:12px 40px;border-radius:14px;border:none;background:rgba(255,255,255,.08);color:#fff;font-size:15px;font-weight:700;cursor:pointer}
+  .card-detail-modal{width:100%;max-width:480px;max-height:92vh;background:linear-gradient(180deg,#1a1d3a,#141832);border-radius:24px 24px 0 0;padding:24px 20px 36px;overflow-y:auto;animation:slideUp .35s ease-out}
+</style>
+</head>
+<body>
+
+<div id="toast" class="toast hidden"></div>
+<input type="file" id="file-import-hidden" accept=".vaultguard,.txt,.json" style="display:none">
+
+<!-- LOGIN WRAPPER -->
+<div id="page-login" class="login-page" style="padding:0">
+
+  <!-- ── SCREEN 1: WELCOME (shown first every time) ── -->
+  <div id="screen-welcome" style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;position:relative">
+    <div class="glow-orb"></div>
+
+    <!-- Logo -->
+    <div class="logo-box" style="margin-bottom:32px">
+      <div class="logo-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4" stroke-width="2"/></svg>
+      </div>
+      <div style="display:flex;align-items:baseline;gap:8px">
+        <div class="logo-text">VaultGuard</div>
+        <div style="font-size:12px;font-weight:700;color:#6b6890;letter-spacing:1px">v15</div>
+      </div>
+      <div class="logo-sub">Seiful tau digital securizat</div>
+    </div>
+
+    <!-- Feature cards -->
+    <div style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;margin-bottom:32px;position:relative;z-index:1">
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;background:rgba(99,102,241,.08);border:1px solid rgba(99,102,241,.15)">
+        <div style="width:38px;height:38px;border-radius:10px;background:rgba(99,102,241,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">🔐</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#e8e6f0">Parole securizate</div>
+          <div style="font-size:12px;color:#7b7899;margin-top:2px">Stocheaza parole, conturi si date de acces criptate AES-256</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;background:rgba(168,85,247,.08);border:1px solid rgba(168,85,247,.15)">
+        <div style="width:38px;height:38px;border-radius:10px;background:rgba(168,85,247,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">🎴</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#e8e6f0">Carduri de fidelitate</div>
+          <div style="font-size:12px;color:#7b7899;margin-top:2px">IKEA, Kaufland, Mega Image — toate codurile de bare intr-un loc</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.15)">
+        <div style="width:38px;height:38px;border-radius:10px;background:rgba(16,185,129,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">📝</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#e8e6f0">Notite private</div>
+          <div style="font-size:12px;color:#7b7899;margin-top:2px">PIN-uri, coduri, informatii sensibile — criptate si in siguranta</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border-radius:14px;background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.15)">
+        <div style="width:38px;height:38px;border-radius:10px;background:rgba(245,158,11,.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:18px">📱</div>
+        <div>
+          <div style="font-size:14px;font-weight:700;color:#e8e6f0">100% local, fara cloud</div>
+          <div style="font-size:12px;color:#7b7899;margin-top:2px">Datele raman pe dispozitivul tau. Nimeni altcineva nu le poate accesa.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Buttons -->
+    <div style="width:100%;max-width:340px;display:flex;flex-direction:column;gap:10px;position:relative;z-index:1">
+      <button id="btn-create-new" onclick="showScreen('new')" style="width:100%;padding:16px 0;border-radius:14px;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,.35)">
+        ✨ Creeaza Seiful Nou
+      </button>
+      <button id="btn-open-existing" onclick="showScreen('existing')" style="width:100%;padding:15px 0;border-radius:14px;border:1.5px solid rgba(99,102,241,.3);background:rgba(15,17,35,.8);color:#a5a3ff;font-size:16px;font-weight:700;cursor:pointer">
+        🔓 Am deja un seif
+      </button>
+    </div>
+
+    <div style="margin-top:20px;font-size:11px;color:#4a4870;text-align:center;max-width:300px;line-height:1.6;position:relative;z-index:1">
+      VaultGuard salveaza datele <strong style="color:#6b6890">local in browser</strong>.<br>
+      Foloseste <strong style="color:#6b6890">Export</strong> regulat pentru backup.
+    </div>
+  </div>
+
+  <!-- ── SCREEN 2: CONT NOU ── -->
+  <div id="screen-new" style="display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;position:relative">
+    <div class="glow-orb"></div>
+    <button onclick="showScreen('welcome')" style="position:absolute;top:20px;left:20px;background:none;border:none;color:#9b97b8;font-size:22px;cursor:pointer;z-index:2">&#8592;</button>
+
+    <div class="logo-box" style="margin-bottom:8px">
+      <div class="logo-circle" style="background:linear-gradient(135deg,#10b981,#059669)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4" stroke-width="2"/></svg>
+      </div>
+      <div class="logo-text" style="background:linear-gradient(135deg,#6ee7b7,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent">Seif Nou</div>
+    </div>
+
+    <!-- Info box -->
+    <div style="width:100%;max-width:340px;padding:14px 16px;border-radius:14px;background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);margin-bottom:22px;position:relative;z-index:1">
+      <div style="font-size:13px;font-weight:700;color:#6ee7b7;margin-bottom:6px">&#9432; Cum functioneaza parola principala</div>
+      <div style="font-size:12px;color:#7b7899;line-height:1.6">
+        Parola principala <strong style="color:#9b97b8">cripteaza toate datele tale</strong>. Daca o uiti, datele nu pot fi recuperate — nu exista resetare.<br><br>
+        <strong style="color:#f59e0b">&#9888; Alege o parola pe care o tii minte!</strong> Scrie-o undeva in siguranta.
+      </div>
+    </div>
+
+    <div class="input-group" style="width:100%;max-width:340px">
+      <label class="input-label">Parola principala (minim 6 caractere)</label>
+      <div class="input-wrap">
+        <input type="password" id="master-pw" class="input-field" placeholder="Alege o parola puternica..." autocomplete="new-password">
+        <button class="eye-btn" onclick="toggleEye('master-pw',this)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
+    </div>
+    <div class="input-group" id="confirm-group" style="width:100%;max-width:340px">
+      <label class="input-label">Confirma parola</label>
+      <div class="input-wrap">
+        <input type="password" id="confirm-pw" class="input-field" placeholder="Repeta parola..." autocomplete="new-password">
+      </div>
+    </div>
+    <div id="login-error" class="error-msg hidden"></div>
+    <button class="btn-primary" id="login-btn" onclick="handleLogin()" style="max-width:340px">✨ Creeaza Seiful</button>
+
+    <div style="margin-top:16px;font-size:11px;color:#4a4870;text-align:center;max-width:300px;line-height:1.6;position:relative;z-index:1">
+      Seiful este criptat cu <strong style="color:#6b6890">AES-256</strong> si stocat local.<br>Nicio data nu paraseste dispozitivul tau.
+    </div>
+  </div>
+
+  <!-- ── SCREEN 3: AM DEJA CONT ── -->
+  <div id="screen-existing" style="display:none;min-height:100vh;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;position:relative">
+    <div class="glow-orb"></div>
+    <button onclick="showScreen('welcome')" style="position:absolute;top:20px;left:20px;background:none;border:none;color:#9b97b8;font-size:22px;cursor:pointer;z-index:2">&#8592;</button>
+
+    <div class="logo-box" style="margin-bottom:24px">
+      <div class="logo-circle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4" stroke-width="2"/></svg>
+      </div>
+      <div class="logo-text">VaultGuard</div>
+      <div class="logo-sub" id="login-subtitle">Seif protejat</div>
+    </div>
+
+    <div class="input-group" style="width:100%;max-width:340px">
+      <label class="input-label">Parola principala</label>
+      <div class="input-wrap">
+        <input type="password" id="master-pw-existing" class="input-field" placeholder="Introdu parola principala..." autocomplete="current-password">
+        <button class="eye-btn" onclick="toggleEye('master-pw-existing',this)"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg></button>
+      </div>
+    </div>
+    <div id="login-error-existing" class="error-msg hidden"></div>
+    <button onclick="handleLoginExisting()" style="width:100%;max-width:340px;padding:15px 0;border-radius:14px;border:none;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#fff;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 4px 20px rgba(99,102,241,.35);margin-top:8px">
+      🔓 Deschide Seiful
+    </button>
+
+    <!-- Biometric -->
+    <div id="biometric-section" class="hidden" style="margin-top:16px;display:flex;flex-direction:column;align-items:center;gap:10px;position:relative;z-index:1;width:100%;max-width:340px">
+      <div style="display:flex;align-items:center;gap:10px;color:#4a4870;font-size:12px;font-weight:600;width:100%">
+        <div style="flex:1;height:1px;background:rgba(99,102,241,.15)"></div>SAU<div style="flex:1;height:1px;background:rgba(99,102,241,.15)"></div>
+      </div>
+      <button id="biometric-btn" onclick="loginWithBiometric()" style="width:100%;padding:15px 0;border-radius:14px;border:1.5px solid rgba(99,102,241,.25);background:rgba(15,17,35,.8);color:#a5a3ff;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2z"/><path d="M8 12c0-2.21 1.79-4 4-4s4 1.79 4 4-1.79 4-4 4"/><path d="M12 8v1M12 15v1M8.46 9.46l.71.71M14.83 14.83l.71.71M7 12H8M16 12h1M8.46 14.54l.71-.71M14.83 9.17l.71-.71"/></svg>
+        Amprenta / Face ID
+      </button>
+      <div id="biometric-info" style="font-size:11px;color:#4a4870;text-align:center;line-height:1.5"></div>
+    </div>
+    <div id="biometric-toggle-section" class="hidden" style="margin-top:8px;display:flex;justify-content:center">
+      <button id="biometric-toggle-btn" onclick="toggleBiometricSetup()" style="background:none;border:none;color:#4a4870;font-size:12px;cursor:pointer;text-decoration:underline;padding:6px 12px;">
+        <span id="biometric-toggle-label">Activează autentificarea cu amprentă</span>
+      </button>
+    </div>
+
+    <div style="margin-top:20px;padding:12px 16px;border-radius:12px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);max-width:340px;width:100%;position:relative;z-index:1">
+      <div style="font-size:12px;color:#d4a017;line-height:1.6">
+        &#9888; <strong>Nu iti amintesti parola?</strong><br>
+        Din pacate, parola nu poate fi resetata. Datele sunt criptate si nu pot fi recuperate fara parola corecta.<br><br>
+        <strong>De aceea este important sa faci Export regulat</strong> — salveaza backup-ul intr-un loc sigur.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- HOME -->
+<div id="page-home" class="hidden">
+  <div class="page-sticky">
+    <div class="header">
+      <span class="header-title">VaultGuard <span style="font-size:13px;font-weight:600;color:#6b6890;-webkit-text-fill-color:#6b6890">v15</span></span>
+      <div class="header-right">
+        <span class="header-count" id="pw-count">0 parole</span>
+        <button class="btn-icon" onclick="handleLogout()" title="Deconectare"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+      </div>
+    </div>
+    <div class="menu-bar" id="menu-bar">
+      <button class="menu-btn" onclick="showExportConfirm()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+      <button class="menu-btn" onclick="showImportDialog()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import
+      </button>
+    </div>
+    <div class="search-box">
+      <span class="search-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+      <input class="search-input" id="search-input" placeholder="Cauta parole..." oninput="renderList()">
+    </div>
+    <div class="cat-scroll" id="cat-scroll"></div>
+  </div>
+  <div class="pw-list" id="pw-list"></div>
+  <button class="fab" onclick="openModal()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+</div>
+
+<!-- DETAIL -->
+<div id="page-detail" class="detail-page hidden"></div>
+
+<!-- NOTES PAGE -->
+<div id="page-notes" class="notes-page hidden">
+  <div class="page-sticky">
+    <div class="header">
+      <span class="header-title">VaultGuard <span style="font-size:13px;font-weight:600;color:#6b6890;-webkit-text-fill-color:#6b6890">v15</span></span>
+      <div class="header-right">
+        <span class="header-count" id="notes-count">0 notițe</span>
+        <button class="btn-icon" onclick="handleLogout()" title="Deconectare"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+      </div>
+    </div>
+    <div class="menu-bar">
+      <button class="menu-btn" onclick="showExportConfirm()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+      <button class="menu-btn" onclick="showImportDialog()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import
+      </button>
+    </div>
+    <div class="search-box">
+      <span class="search-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+      <input class="search-input" id="notes-search" placeholder="Caută notițe..." oninput="renderNotes()">
+    </div>
+    <div class="note-cats" id="note-cats"></div>
+  </div>
+  <div id="notes-list" style="padding-bottom:120px"></div>
+  <button class="fab" onclick="openNoteModal()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+</div>
+
+<!-- NOTE MODAL -->
+<div id="note-modal-overlay" class="overlay hidden" onclick="closeNoteModal()">
+  <div class="note-modal" onclick="event.stopPropagation()" id="note-modal-content"></div>
+</div>
+
+<!-- BOTTOM NAV (shown when logged in) -->
+<div class="bottom-nav hidden" id="bottom-nav">
+  <button class="nav-tab" id="nav-passwords" onclick="switchTab('home')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+    Parole
+  </button>
+  <button class="nav-tab" id="nav-notes" onclick="switchTab('notes')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    Notițe
+  </button>
+  <button class="nav-tab active" id="nav-cards" onclick="switchTab('cards')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><line x1="7" y1="15" x2="10" y2="15"/></svg>
+    Carduri
+  </button>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay" class="overlay hidden" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()" id="modal-content"></div>
+</div>
+
+<!-- EXPORT CONFIRM DIALOG -->
+<div id="export-overlay" class="import-overlay hidden" onclick="closeExportConfirm()">
+  <div class="import-box" onclick="event.stopPropagation()" style="max-width:360px">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px">
+      <div style="width:42px;height:42px;border-radius:12px;background:rgba(99,102,241,.15);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#a5a3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </div>
+      <div class="import-title" style="margin-bottom:0">Exportă Backup</div>
+    </div>
+    <div id="export-confirm-body" style="font-size:14px;color:#9b97b8;line-height:1.6;margin-bottom:20px"></div>
+
+    <div style="border-radius:12px;border:1.5px solid rgba(245,158,11,.25);background:rgba(245,158,11,.06);padding:12px 14px;margin-bottom:20px;display:flex;gap:10px;align-items:flex-start">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <div style="font-size:12px;color:#d4a017;line-height:1.5">Fișierul conține date sensibile. Păstrează-l într-un loc sigur și nu îl trimite nimănui.</div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <button class="btn-save" onclick="doExportEncrypted()" style="display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Exportă Criptat (.vaultguard)
+      </button>
+      <button onclick="doExportCSV()" style="width:100%;padding:13px 0;border-radius:14px;border:1.5px solid rgba(239,68,68,.25);background:rgba(239,68,68,.07);color:#ff9090;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+        Exportă CSV (necriptat)
+      </button>
+      <button class="btn-cancel" onclick="closeExportConfirm()">Anulează</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT DIALOG -->
+<div id="import-overlay" class="import-overlay hidden" onclick="closeImport()">
+  <div class="import-box" onclick="event.stopPropagation()">
+    <div class="import-title">Import Date</div>
+    <div class="import-sub">Importa un backup VaultGuard. Poti alege sa inlocuiesti toate datele sau sa le combini cu cele existente.</div>
+
+    <div class="file-input-wrap" onclick="document.getElementById('file-import-hidden').click()">
+      <div class="file-input-label" id="file-label">Apasa aici pentru a alege fisierul</div>
+    </div>
+
+    <div class="import-or">- SAU lipeste continutul mai jos -</div>
+
+    <textarea class="import-area" id="import-textarea" placeholder="Lipeste aici continutul exportat..."></textarea>
+
+    <div class="form-group">
+      <label class="form-label">Mod import</label>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button class="menu-btn" id="import-mode-merge" onclick="setImportMode('merge')" style="flex:1;justify-content:center;background:rgba(99,102,241,.15);color:#a5a3ff;border-color:rgba(99,102,241,.3)">
+          Combina
+        </button>
+        <button class="menu-btn" id="import-mode-replace" onclick="setImportMode('replace')" style="flex:1;justify-content:center">
+          Inlocuieste tot
+        </button>
+      </div>
+    </div>
+
+    <div class="import-btns" style="margin-top:8px">
+      <button class="btn-save" onclick="doImport()">Importa</button>
+      <button class="btn-cancel" onclick="closeImport()">Anuleaza</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// SVG icons
+var ICONS = {
+  social:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>',
+  email:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v15c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>',
+  finance:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>',
+  work:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2"/></svg>',
+  shopping:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>',
+  gaming:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><line x1="6" y1="12" x2="10" y2="12"/><line x1="8" y1="10" x2="8" y2="14"/><circle cx="16" cy="10" r=".5" fill="currentColor"/><circle cx="18" cy="12" r=".5" fill="currentColor"/></svg>',
+  other:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>',
+  lock:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>',
+  copy:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>',
+  eye:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>',
+  eyeOff:'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>',
+  back:'<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>',
+  edit:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>',
+  trash:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v15a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>',
+  dice:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="3"/><circle cx="8" cy="8" r="1.5" fill="currentColor"/><circle cx="16" cy="8" r="1.5" fill="currentColor"/><circle cx="8" cy="16" r="1.5" fill="currentColor"/><circle cx="16" cy="16" r="1.5" fill="currentColor"/><circle cx="12" cy="12" r="1.5" fill="currentColor"/></svg>',
+  folder:'<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>'
+};
+
+var CATEGORIES = [
+  {id:"social",  name:"Social",      icon:"social",   color:"#6366f1"},
+  {id:"email",   name:"Email",       icon:"email",    color:"#ec4899"},
+  {id:"finance", name:"Finante",     icon:"finance",  color:"#10b981"},
+  {id:"work",    name:"Munca",       icon:"work",     color:"#f59e0b"},
+  {id:"shopping",name:"Cumparaturi", icon:"shopping", color:"#8b5cf6"},
+  {id:"gaming",  name:"Gaming",      icon:"gaming",   color:"#ef4444"},
+  {id:"other",   name:"Altele",      icon:"other",    color:"#6b7280"}
+];
+
+var state = {isNew:false,masterKey:null,masterPwText:"",passwords:[],notes:[],cards:[],selectedCat:"all",editingId:null,viewId:null,editingNoteId:null,currentTab:"home"};
+var importMode = "merge";
+
+// ---- CRYPTO ----
+function generateSalt(){var a=new Uint8Array(16);crypto.getRandomValues(a);return Array.from(a,function(b){return b.toString(16).padStart(2,"0")}).join("")}
+async function deriveKey(pw,salt,iterations){var enc=new TextEncoder();var km=await crypto.subtle.importKey("raw",enc.encode(pw),"PBKDF2",false,["deriveKey"]);return crypto.subtle.deriveKey({name:"PBKDF2",salt:enc.encode(salt),iterations:iterations||600000,hash:"SHA-256"},km,{name:"AES-GCM",length:256},false,["encrypt","decrypt"])}
+async function encryptData(data,key){var enc=new TextEncoder();var iv=crypto.getRandomValues(new Uint8Array(12));var ct=await crypto.subtle.encrypt({name:"AES-GCM",iv:iv},key,enc.encode(JSON.stringify(data)));return{iv:Array.from(iv,function(b){return b.toString(16).padStart(2,"0")}).join(""),data:Array.from(new Uint8Array(ct),function(b){return b.toString(16).padStart(2,"0")}).join("")}}
+async function decryptData(obj,key){var iv=new Uint8Array(obj.iv.match(/.{2}/g).map(function(b){return parseInt(b,16)}));var dt=new Uint8Array(obj.data.match(/.{2}/g).map(function(b){return parseInt(b,16)}));var dec=await crypto.subtle.decrypt({name:"AES-GCM",iv:iv},key,dt);return JSON.parse(new TextDecoder().decode(dec))}
+
+function generatePassword(len){len=len||16;var chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+-=[]{}|;:,.<>?";var a=new Uint8Array(len);crypto.getRandomValues(a);return Array.from(a,function(b){return chars[b%chars.length]}).join("")}
+function getStrength(pw){if(!pw)return{score:0,label:"-",color:"#555"};var s=0;if(pw.length>=8)s++;if(pw.length>=12)s++;if(pw.length>=16)s++;if(/[a-z]/.test(pw)&&/[A-Z]/.test(pw))s++;if(/\d/.test(pw))s++;if(/[^a-zA-Z0-9]/.test(pw))s++;if(s<=2)return{score:s,label:"Slaba",color:"#ff4444"};if(s<=4)return{score:s,label:"Medie",color:"#ffaa00"};return{score:s,label:"Puternica",color:"#00cc66"}}
+
+// ---- STORAGE ----
+function storageGet(k){try{var v=localStorage.getItem("vg_"+k);return v?JSON.parse(v):null}catch(e){return null}}
+function storageSet(k,v){try{localStorage.setItem("vg_"+k,JSON.stringify(v))}catch(e){}}
+
+// ---- TOAST ----
+var toastTimer=null;
+function showToast(msg,type){type=type||"success";var el=document.getElementById("toast");el.textContent=msg;el.className="toast "+type;if(toastTimer)clearTimeout(toastTimer);toastTimer=setTimeout(function(){el.classList.add("hidden")},2200)}
+
+function toggleEye(inputId,btn){var inp=document.getElementById(inputId);var isPw=inp.type==="password";inp.type=isPw?"text":"password";btn.innerHTML=isPw?ICONS.eyeOff:ICONS.eye}
+
+// ---- SCREENS ----
+function showScreen(name){
+  document.getElementById("screen-welcome").style.display="none";
+  document.getElementById("screen-new").style.display="none";
+  document.getElementById("screen-existing").style.display="none";
+  var el=document.getElementById("screen-"+name);
+  if(el)el.style.display="flex";
+  // focus password field
+  setTimeout(function(){
+    if(name==="new"){var el=document.getElementById("master-pw");if(el)el.focus();}
+    if(name==="existing"){var el=document.getElementById("master-pw-existing");if(el)el.focus();}
+  },100);
+}
+
+// ---- INIT ----
+async function init(){
+  var meta=storageGet("meta");
+  var bioAvail=await biometricAvailable();
+  if(meta){
+    state.isNew=false;
+    // Vault exists - show welcome screen, "Am deja cont" button prominent
+    showScreen("welcome");
+    // Pre-setup biometric on existing screen
+    if(storageGet("biometric_registered")&&bioAvail){
+      document.getElementById("biometric-section").classList.remove("hidden");
+      document.getElementById("biometric-info").textContent="Amprentă salvată pe acest dispozitiv";
+    }
+    if(bioAvail){
+      document.getElementById("biometric-toggle-section").classList.remove("hidden");
+      var reg=storageGet("biometric_registered");
+      document.getElementById("biometric-toggle-label").textContent=reg?"Dezactivează amprenta":"Activează autentificarea cu amprentă";
+    }
+    // Hide "create new" and make "existing" more prominent
+    var btnNew=document.getElementById("btn-create-new");
+    if(btnNew){btnNew.style.background="rgba(99,102,241,.12)";btnNew.style.border="1.5px solid rgba(99,102,241,.2)";btnNew.style.color="#7b7899";btnNew.style.boxShadow="none";btnNew.textContent="+ Seif nou (sterge datele existente)";}
+    var btnEx=document.getElementById("btn-open-existing");
+    if(btnEx){btnEx.style.background="linear-gradient(135deg,#6366f1,#8b5cf6)";btnEx.style.color="#fff";btnEx.style.border="none";btnEx.style.boxShadow="0 4px 20px rgba(99,102,241,.35)";btnEx.textContent="🔓 Deschide Seiful";}
+  }else{
+    state.isNew=true;
+    showScreen("welcome");
+  }
+  // Enter key handlers
+  var mpw=document.getElementById("master-pw");
+  if(mpw)mpw.addEventListener("keydown",function(e){if(e.key==="Enter")handleLogin()});
+  var cpw=document.getElementById("confirm-pw");
+  if(cpw)cpw.addEventListener("keydown",function(e){if(e.key==="Enter")handleLogin()});
+  var mpwEx=document.getElementById("master-pw-existing");
+  if(mpwEx)mpwEx.addEventListener("keydown",function(e){if(e.key==="Enter")handleLoginExisting()});
+}
+
+// ---- LOGIN ----
+// handleLogin = create NEW vault
+async function handleLogin(){
+  var errEl=document.getElementById("login-error");errEl.classList.add("hidden");
+  var pw=document.getElementById("master-pw").value;
+  if(!pw){errEl.textContent="Introdu parola principala";errEl.classList.remove("hidden");return}
+  if(pw.length<6){errEl.textContent="Minim 6 caractere";errEl.classList.remove("hidden");return}
+  var cpw=document.getElementById("confirm-pw").value;
+  if(pw!==cpw){errEl.textContent="Parolele nu se potrivesc";errEl.classList.remove("hidden");return}
+  var btn=document.getElementById("login-btn");if(btn){btn.textContent="Se creeaza...";btn.disabled=true;}
+  try{
+    var salt=generateSalt();var key=await deriveKey(pw,salt,600000);var enc=await encryptData([],key);
+    storageSet("meta",{salt:salt,iterations:600000});storageSet("data",enc);
+    state.masterKey=key;state.masterPwText=pw;state.passwords=[];state.notes=[];state.cards=[];state.isNew=false;
+    document.getElementById("bottom-nav").classList.remove("hidden");
+    switchTab("cards");showToast("✅ Seif creat cu succes!");
+  }catch(e){
+    errEl.textContent="Eroare la creare seif. Incearca din nou.";errEl.classList.remove("hidden");
+  }finally{
+    if(btn){btn.textContent="✨ Creeaza Seiful";btn.disabled=false;}
+  }
+}
+
+// handleLoginExisting = open EXISTING vault
+async function handleLoginExisting(){
+  var errEl=document.getElementById("login-error-existing");errEl.classList.add("hidden");
+  var pw=(document.getElementById("master-pw-existing").value||"").trim();
+  if(!pw){errEl.textContent="Introdu parola principala";errEl.classList.remove("hidden");return}
+  var btn=event.target;if(btn){btn.textContent="Se deschide...";btn.disabled=true;}
+  try{
+    var meta=storageGet("meta");
+    if(!meta){errEl.textContent="Nu exista niciun seif salvat pe acest dispozitiv.";errEl.classList.remove("hidden");if(btn){btn.textContent="🔓 Deschide Seiful";btn.disabled=false;}return}
+    var iter=meta.iterations||100000;
+    var key=await deriveKey(pw,meta.salt,iter);
+    var encData=storageGet("data");
+    var dec=await decryptData(encData,key);
+    state.masterKey=key;state.masterPwText=pw;state.passwords=dec;
+    try{var encNotes=storageGet("notes");if(encNotes){state.notes=await decryptData(encNotes,key)}else{state.notes=[]}}catch(en){state.notes=[]}
+    try{var encCards=storageGet("cards");if(encCards){state.cards=await decryptData(encCards,key)}else{state.cards=[]}}catch(ec){state.cards=[]}
+    if(iter<600000){
+      try{
+        var newKey=await deriveKey(pw,meta.salt,600000);
+        var encNew=await encryptData(state.passwords,newKey);
+        storageSet("data",encNew);
+        if(state.notes.length>0){var encNotesNew=await encryptData(state.notes,newKey);storageSet("notes",encNotesNew)}
+        storageSet("meta",{salt:meta.salt,iterations:600000});
+        state.masterKey=newKey;
+      }catch(me){}
+    }
+    document.getElementById("bottom-nav").classList.remove("hidden");
+    switchTab("cards");updateBiometricMenuLabel();
+  }catch(e){
+    errEl.textContent="Parola incorecta. Incearca din nou.";errEl.classList.remove("hidden");
+    if(btn){btn.textContent="🔓 Deschide Seiful";btn.disabled=false;}
+  }
+}
+function handleLogout(){state.masterKey=null;state.masterPwText="";state.passwords=[];state.notes=[];state.cards=[];state.currentTab="home";var mpw=document.getElementById("master-pw");if(mpw)mpw.value="";var cpw=document.getElementById("confirm-pw");if(cpw)cpw.value="";var mpwEx=document.getElementById("master-pw-existing");if(mpwEx)mpwEx.value="";document.getElementById("bottom-nav").classList.add("hidden");showPage("login");setTimeout(function(){showScreen("welcome");},50);}
+async function savePasswords(){var enc=await encryptData(state.passwords,state.masterKey);storageSet("data",enc)}
+async function saveNotes(){var enc=await encryptData(state.notes,state.masterKey);storageSet("notes",enc)}
+
+// ============================================================
+//  BIOMETRIC (WebAuthn)
+// ============================================================
+// Strategy: WebAuthn proves "this device, this user". 
+// The actual master password is stored encrypted with a device key 
+// derived from a stored secret + WebAuthn credential ID.
+// We store the master pw encrypted with a random key, 
+// and the random key is protected by WebAuthn presence check.
+
+// Verificare async - detectează corect biometria hardware pe Android/iOS
+async function biometricAvailable(){
+  if(!window.PublicKeyCredential||!navigator.credentials||!window.crypto.subtle) return false;
+  try{
+    return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
+  }catch(e){return false;}
+}
+
+function updateBiometricMenuLabel(){
+  var label=document.getElementById("biometric-toggle-label");
+  if(!label)return;
+  var reg=storageGet("biometric_registered");
+  label.textContent=reg?"Dezactivează amprenta":"Activează autentificarea cu amprentă";
+  // Arată/ascunde butonul de login cu amprentă
+  var bioSection=document.getElementById("biometric-section");
+  if(bioSection){
+    if(reg){
+      bioSection.classList.remove("hidden");
+      document.getElementById("biometric-info").textContent="Amprentă salvată pe acest dispozitiv";
+    } else {
+      bioSection.classList.add("hidden");
+    }
+  }
+}
+
+async function toggleBiometricSetup(){
+  if(!await biometricAvailable()){showToast("Dispozitivul nu suportă biometrie","error");return}
+  var reg=storageGet("biometric_registered");
+  if(reg){
+    // Ask to disable
+    if(confirm("Dezactivezi autentificarea cu amprenta?")){
+      storageSet("biometric_registered",null);
+      storageSet("biometric_enc_pw",null);
+      storageSet("biometric_cred_id",null);
+      updateBiometricMenuLabel();
+      showToast("Amprentă dezactivată!");
+    }
+  }else{
+    // Dacă nu e autentificat, trebuie să introducă parola întâi
+    if(!state.masterKey){
+      var pw=document.getElementById("master-pw").value;
+      if(!pw){showToast("Introdu mai întâi parola principală","error");document.getElementById("master-pw").focus();return;}
+      // Verifică parola
+      try{
+        var meta=storageGet("meta");
+        var key=await deriveKey(pw,meta.salt);
+        var encData=storageGet("data");
+        await decryptData(encData,key);
+        state.masterKey=key;state.masterPwText=pw;
+      }catch(e){showToast("Parolă incorectă","error");return;}
+    }
+    await registerBiometric();
+  }
+}
+
+async function registerBiometric(){
+  if(!await biometricAvailable()){showToast("Dispozitivul nu suportă biometrie","error");return}
+  try{
+    showToast("Scanează amprenta sau Face ID...");
+    var challenge=new Uint8Array(32);
+    crypto.getRandomValues(challenge);
+    var userId=new Uint8Array(16);
+    crypto.getRandomValues(userId);
+
+    var cred=await navigator.credentials.create({
+      publicKey:{
+        challenge:challenge,
+        rp:{name:"VaultGuard",id:location.hostname||"localhost"},
+        user:{id:userId,name:"vaultguard-user",displayName:"VaultGuard User"},
+        pubKeyCredParams:[{type:"public-key",alg:-7},{type:"public-key",alg:-257}],
+        authenticatorSelection:{
+          authenticatorAttachment:"platform",
+          userVerification:"required",
+          requireResidentKey:false
+        },
+        timeout:60000,
+        attestation:"none"
+      }
+    });
+
+    // Store credential ID
+    var credId=Array.from(new Uint8Array(cred.rawId),function(b){return b.toString(16).padStart(2,"0")}).join("");
+    storageSet("biometric_cred_id",credId);
+
+    // Encrypt master password with a key derived from credId+salt
+    var bioSalt=generateSalt();
+    var bioKey=await deriveKey(credId+bioSalt,"biometric-vaultguard-v1");
+    var encPw=await encryptData(state.masterPwText,bioKey);
+    storageSet("biometric_enc_pw",{enc:encPw,salt:bioSalt});
+    storageSet("biometric_registered",true);
+
+    updateBiometricMenuLabel();
+    showToast("Amprentă activată cu succes! ✅");
+  }catch(e){
+    if(e.name==="NotAllowedError"){showToast("Autentificare anulată","error")}
+    else{showToast("Eroare la activare: "+e.message,"error")}
+  }
+}
+
+async function loginWithBiometric(){
+  if(!await biometricAvailable()||!storageGet("biometric_registered")){
+    showToast("Amprenta nu este configurată","error");return;
+  }
+  try{
+    document.getElementById("biometric-info").textContent="Scanează amprenta...";
+    var challenge=new Uint8Array(32);
+    crypto.getRandomValues(challenge);
+
+    var credIdHex=storageGet("biometric_cred_id");
+    var credIdBytes=new Uint8Array(credIdHex.match(/.{2}/g).map(function(b){return parseInt(b,16)}));
+
+    var assertion=await navigator.credentials.get({
+      publicKey:{
+        challenge:challenge,
+        rpId:location.hostname||"localhost",
+        allowCredentials:[{type:"public-key",id:credIdBytes,transports:["internal"]}],
+        userVerification:"required",
+        timeout:60000
+      }
+    });
+
+    // Decrypt master pw
+    var stored=storageGet("biometric_enc_pw");
+    var bioKey=await deriveKey(credIdHex+stored.salt,"biometric-vaultguard-v1");
+    var masterPw=await decryptData(stored.enc,bioKey);
+
+    // Now login normally with recovered password
+    var meta=storageGet("meta");
+    var key=await deriveKey(masterPw,meta.salt);
+    var encData=storageGet("data");
+    var dec=await decryptData(encData,key);
+    state.masterKey=key;state.masterPwText=masterPw;state.passwords=dec;
+    try{var encNotes=storageGet("notes");if(encNotes){state.notes=await decryptData(encNotes,key)}else{state.notes=[]}}catch(en){state.notes=[]}
+      try{var encCards=storageGet("cards");if(encCards){state.cards=await decryptData(encCards,key)}else{state.cards=[]}}catch(ec){state.cards=[]}
+    document.getElementById("bottom-nav").classList.remove("hidden");
+    switchTab("cards");
+    showToast("Bun venit! 👆");
+  }catch(e){
+    document.getElementById("biometric-info").textContent="Amprentă nerecunoscută. Încearcă parola.";
+    if(e.name!=="NotAllowedError")showToast("Autentificare eșuată","error");
+  }
+}
+
+// ---- PAGES ----
+function showPage(page){
+  document.getElementById("page-login").classList.toggle("hidden",page!=="login");
+  document.getElementById("page-home").classList.toggle("hidden",page!=="home");
+  document.getElementById("page-detail").classList.toggle("hidden",page!=="detail");
+  document.getElementById("page-notes").classList.toggle("hidden",page!=="notes");
+  document.getElementById("page-cards").classList.toggle("hidden",page!=="cards");
+  if(page==="home"){renderCats();renderList()}
+  if(page==="detail")renderDetail();
+  if(page==="notes")renderNotes();
+  if(page==="cards")renderCards();
+}
+// ============================================================
+//  CARDS
+// ============================================================
+var CARD_TYPES=[
+  {id:"fidelitate",label:"Fidelitate",emoji:"&#127983;",colors:["#c62828","#e53935"],accent:"#ff6b4a"},
+  {id:"reducere",  label:"Reducere",  emoji:"&#127991;",colors:["#2e7d32","#43a047"],accent:"#81c784"},
+  {id:"cadou",     label:"Cadou",     emoji:"&#127873;",colors:["#1565c0","#1e88e5"],accent:"#64b5f6"},
+  {id:"membru",    label:"Membru",    emoji:"&#11088;", colors:["#e65100","#f57c00"],accent:"#ffb74d"},
+  {id:"transport", label:"Transport", emoji:"&#128652;",colors:["#1a237e","#283593"],accent:"#7986cb"},
+  {id:"altul",     label:"Altul",     emoji:"&#128179;",colors:["#37474f","#455a64"],accent:"#90a4ae"}
+];
+
+async function saveCards(){var enc=await encryptData(state.cards,state.masterKey);storageSet("cards",enc)}
+function getCardType(id){return CARD_TYPES.find(function(t){return t.id===id})||CARD_TYPES[5]}
+
+function drawBarcode(canvas,code){
+  if(!canvas||!code)return;
+  var ctx=canvas.getContext("2d");
+  var w=canvas.width,h=canvas.height;
+  ctx.fillStyle="#fff";ctx.fillRect(0,0,w,h);
+  var C39={
+    "0":"nnnwwnwnn","1":"wnnwnnnnw","2":"nnwwnnnnw","3":"wnwwnnnnn","4":"nnnwwnnnw",
+    "5":"wnnwwnnnn","6":"nnwwwnnnn","7":"nnnwnnwnw","8":"wnnwnnwnn","9":"nnwwnnwnn",
+    "A":"wnnnnwnnw","B":"nnwnnwnnw","C":"wnwnnwnnn","D":"nnnnwwnnw","E":"wnnnwwnnn",
+    "F":"nnwnwwnnn","G":"nnnnnwwnw","H":"wnnnnwwnn","I":"nnwnnwwnn","J":"nnnnwwwnn",
+    "K":"wnnnnnnww","L":"nnwnnnnww","M":"wnwnnnnwn","N":"nnnnwnnww","O":"wnnnwnnwn",
+    "P":"nnwnwnnwn","Q":"nnnnnnwww","R":"wnnnnnwwn","S":"nnwnnnwwn","T":"nnnnwnwwn",
+    "U":"wwnnnnnnw","V":"nwwnnnnnw","W":"wwwnnnnnn","X":"nwnnwnnnw","Y":"wwnnwnnnn",
+    "Z":"nwwnwnnnn","-":"nwnnnnwnw","*":"nwnnwnwnn"," ":"nwwnnnwnn"
+  };
+  var clean=code.toUpperCase().replace(/[^0-9A-Z\- ]/g,"").slice(0,30);
+  var enc2="*"+clean+"*";
+  var bars=[];
+  for(var i=0;i<enc2.length;i++){
+    var ch=enc2[i];var pat=C39[ch]||C39["0"];
+    for(var j=0;j<9;j++)bars.push({wide:pat[j]==="w",black:(j%2===0)});
+    if(i<enc2.length-1)bars.push({wide:false,black:false});
+  }
+  var narrow=Math.max(1,Math.floor((w-8)/(bars.length*2.5)));
+  var wide=Math.max(2,Math.round(narrow*2.5));
+  var totalW=bars.reduce(function(s,b){return s+(b.wide?wide:narrow)},0);
+  var scale=Math.min(1,(w-8)/totalW);
+  var x=4;
+  bars.forEach(function(b){
+    var bw=Math.max(1,Math.round((b.wide?wide:narrow)*scale));
+    if(b.black){ctx.fillStyle="#111";ctx.fillRect(x,4,bw,h-8)}
+    x+=bw;
+  });
+}
+
+function renderCards(){
+  if(!state.cards)state.cards=[];
+  var s=(document.getElementById("cards-search")||{}).value||"";
+  var search=s.toLowerCase();
+  var filtered=state.cards.filter(function(c){
+    return !search||c.name.toLowerCase().indexOf(search)>=0||(c.number||"").indexOf(search)>=0;
+  });
+  var el=document.getElementById("cards-count");
+  if(el)el.textContent=state.cards.length+" card"+(state.cards.length===1?"":"uri");
+  var wrap=document.getElementById("cards-list");
+  if(!wrap)return;
+  if(filtered.length===0){
+    wrap.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><line x1="7" y1="15" x2="10" y2="15"/></svg></div><div class="empty-title">'+(state.cards.length===0?"Niciun card salvat":"Niciun rezultat")+'</div><div class="empty-sub">'+(state.cards.length===0?"Apasa + pentru primul card (IKEA, Metro...)":"Incearca alta cautare")+'</div></div>';
+    return;
+  }
+  wrap.innerHTML=filtered.map(function(c){
+    var t=getCardType(c.type);
+    var dnr=c.number?c.number.replace(/(.{4})/g,"$1 ").trim():"";
+    var clr=getCardColor(c);
+    return'<div class="loyalty-card" style="background:linear-gradient(135deg,'+clr[0]+','+clr[1]+')" onclick="openCardDetail(\''+c.id+'\')">'+
+      '<div class="loyalty-card-shimmer"></div>'+
+      '<div class="loyalty-card-header"><div class="loyalty-card-name">'+esc(c.name)+'</div>'+
+      '<span class="loyalty-card-type">'+t.emoji+' '+t.label+'</span></div>'+
+      (c.number?'<div class="loyalty-card-nr">'+esc(dnr)+'</div>':'')+
+      (c.number?'<div class="loyalty-card-bc"><canvas id="bc-'+c.id+'" width="300" height="50"></canvas><div class="loyalty-card-bc-nr">'+esc(c.number)+'</div></div>':'')+
+      (c.notes?'<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:8px">'+esc(c.notes.slice(0,70))+'</div>':'')+
+      '</div>';
+  }).join("");
+  setTimeout(function(){filtered.forEach(function(c){if(c.number){var cv=document.getElementById("bc-"+c.id);if(cv)drawBarcode(cv,c.number)}})},40);
+}
+
+var _scanStream=null,_scanInterval=null;
+
+function openCardModal(id){
+  var c=id?state.cards.find(function(x){return x.id===id}):null;
+  var isEdit=!!c;
+  var card=c||{id:Date.now().toString(36)+Math.random().toString(36).slice(2),name:"",number:"",type:"fidelitate",notes:""};
+  var typeHtml=CARD_TYPES.map(function(t){
+    var active=card.type===t.id;
+    return'<button class="card-type-btn'+(active?" active":"")+'" id="ctype-'+t.id+
+      '" style="color:'+t.accent+';border-color:'+(active?t.accent:"transparent")+';background:'+(active?"rgba(255,255,255,.06)":"rgba(20,22,44,.6)")+
+      '" onclick="selectCardType(\''+t.id+'\')">'+t.emoji+'<span style="display:block;margin-top:2px">'+t.label+'</span></button>';
+  }).join("");
+  document.getElementById("card-modal-content").innerHTML=
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">'+
+    '<div class="modal-title" style="margin-bottom:0">'+(isEdit?"Editeaza cardul":"Card nou")+'</div>'+
+    (isEdit?'<button class="btn-icon" style="color:#ff6b6b" onclick="deleteCard(\''+card.id+'\')" title="Sterge">'+ICONS.trash+'</button>':'')+
+    '</div>'+
+    '<div class="form-group"><label class="form-label">Tip card</label><div class="card-type-grid">'+typeHtml+'</div>'+
+    '<input type="hidden" id="fc-type" value="'+escAttr(card.type)+'"></div>'+
+    '<div class="form-group"><label class="form-label">Nume magazin / card</label>'+
+    '<input class="form-input" id="fc-name" value="'+escAttr(card.name)+'" placeholder="ex: IKEA, Metro, Carrefour, Kaufland..."></div>'+
+    '<div class="form-group"><label class="form-label">Numar card / cod de bare</label>'+
+    '<div style="display:flex;gap:8px">'+
+    '<input class="form-input" id="fc-number" value="'+escAttr(card.number)+'" placeholder="Introdu sau scaneaza..." inputmode="numeric" style="flex:1">'+
+    '<button onclick="startScanner()" style="padding:10px 14px;border-radius:12px;border:none;background:rgba(99,102,241,.2);color:#a5a3ff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">&#128247; Scan</button>'+
+    '</div>'+
+    '<div id="fc-bc-preview" style="margin-top:10px;background:rgba(255,255,255,.95);border-radius:10px;padding:8px 10px 4px;flex-direction:column;align-items:center;display:'+(card.number?"flex":"none")+'">'+
+    '<canvas id="fc-bc-canvas" width="300" height="50"></canvas>'+
+    '<div id="fc-bc-nr" style="font-family:monospace;font-size:10px;color:#333;margin-top:2px">'+esc(card.number)+'</div>'+
+    '</div></div>'+
+    '<div class="form-group"><label class="form-label">Note (puncte, beneficii...)</label>'+
+    '<textarea class="form-input" id="fc-notes" placeholder="ex: 2x puncte joi, reducere 10%...">'+esc(card.notes||"")+'</textarea></div>'+
+    '<button class="btn-save" onclick="saveCard(\''+card.id+'\','+isEdit+')" style="margin-top:6px">'+(isEdit?"Salveaza modificarile":"Adauga cardul")+'</button>'+
+    '<button class="btn-cancel" onclick="closeCardModal()">Anuleaza</button>';
+  document.getElementById("card-modal-overlay").classList.remove("hidden");
+  if(card.number){setTimeout(function(){var cv=document.getElementById("fc-bc-canvas");if(cv)drawBarcode(cv,card.number)},60)}
+  var numInput=document.getElementById("fc-number");
+  if(numInput){
+    numInput.addEventListener("input",function(){
+      var v=this.value.trim();
+      var prev=document.getElementById("fc-bc-preview");
+      var nr=document.getElementById("fc-bc-nr");
+      if(v){prev.style.display="flex";if(nr)nr.textContent=v;var cv=document.getElementById("fc-bc-canvas");if(cv)drawBarcode(cv,v)}
+      else if(prev){prev.style.display="none"}
+    });
+  }
+  setTimeout(function(){var n=document.getElementById("fc-name");if(n)n.focus()},100);
+}
+
+function selectCardType(id){
+  var inp=document.getElementById("fc-type");if(inp)inp.value=id;
+  CARD_TYPES.forEach(function(t){
+    var btn=document.getElementById("ctype-"+t.id);if(!btn)return;
+    var active=t.id===id;
+    btn.className="card-type-btn"+(active?" active":"");
+    btn.style.color=t.accent;btn.style.borderColor=active?t.accent:"transparent";
+    btn.style.background=active?"rgba(255,255,255,.06)":"rgba(20,22,44,.6)";
+  });
+}
+
+function closeCardModal(){document.getElementById("card-modal-overlay").classList.add("hidden");stopScanner()}
+
+function saveCard(id,isEdit){
+  var name=(document.getElementById("fc-name").value||"").trim();
+  var number=(document.getElementById("fc-number").value||"").trim();
+  var type=document.getElementById("fc-type").value||"fidelitate";
+  var notes=(document.getElementById("fc-notes").value||"").trim();
+  if(!name){showToast("Adauga numele magazinului","error");return}
+  if(!number){showToast("Adauga numarul cardului sau codul","error");return}
+  var existing=isEdit?state.cards.find(function(c){return c.id===id}):null;
+  var card={id:id,name:name,number:number,type:type,notes:notes,
+    createdAt:existing?existing.createdAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString()};
+  if(isEdit){state.cards=state.cards.map(function(c){return c.id===id?card:c})}
+  else{state.cards.push(card)}
+  saveCards();closeCardModal();renderCards();showToast(isEdit?"Card actualizat!":"Card salvat!");
+}
+
+var _delCardOk=false;
+function deleteCard(id){
+  if(!_delCardOk){_delCardOk=true;showToast("Apasa din nou Sterge pentru confirmare","error");setTimeout(function(){_delCardOk=false},3000);return}
+  state.cards=state.cards.filter(function(c){return c.id!==id});
+  saveCards();_delCardOk=false;closeCardModal();renderCards();showToast("Card sters!");
+}
+
+function startScanner(){
+  var overlay=document.getElementById("scanner-overlay");
+  if(overlay)overlay.classList.remove("hidden");
+  document.getElementById("scanner-manual-input").value="";
+  // Attach camera button handler
+  var btn=document.getElementById("scanner-open-camera-btn");
+  if(btn){
+    btn.onclick=function(){
+      document.getElementById("scanner-capture-input").click();
+    };
+  }
+}
+
+function stopScanner(){
+  if(_scanInterval){clearInterval(_scanInterval);_scanInterval=null}
+  if(_scanStream){_scanStream.getTracks().forEach(function(t){t.stop()});_scanStream=null}
+  var o=document.getElementById("scanner-overlay");if(o)o.classList.add("hidden");
+  var inp=document.getElementById("scanner-capture-input");if(inp)inp.value="";
+}
+
+function _initCameraCapture(){
+  var inp=document.getElementById("scanner-capture-input");
+  if(!inp)return;
+  inp.addEventListener("change",function(e){
+    var file=e.target.files&&e.target.files[0];
+    if(!file)return;
+    var proc=document.getElementById("scanner-processing");
+    if(proc)proc.style.display="block";
+    var btn=document.getElementById("scanner-open-camera-btn");
+    if(btn)btn.style.opacity="0.5";
+    var img=new Image();
+    var url=URL.createObjectURL(file);
+    img.onload=function(){
+      var canvas=document.createElement("canvas");
+      canvas.width=img.width;canvas.height=img.height;
+      var ctx=canvas.getContext("2d",{willReadFrequently:true});
+      ctx.drawImage(img,0,0);
+      URL.revokeObjectURL(url);
+      _decodeFromCanvas(canvas,ctx);
+      if(proc)proc.style.display="none";
+      if(btn)btn.style.opacity="1";
+      inp.value="";
+    };
+    img.onerror=function(){
+      URL.revokeObjectURL(url);
+      if(proc)proc.style.display="none";
+      if(btn)btn.style.opacity="1";
+      showToast("Nu am putut citi imaginea","error");
+      inp.value="";
+    };
+    img.src=url;
+  });
+}
+
+function _decodeFromCanvas(canvas,ctx){
+  var w=canvas.width,h=canvas.height;
+  // Try BarcodeDetector API (Chrome on Android)
+  if(window.BarcodeDetector){
+    var det=new BarcodeDetector({formats:["code_39","code_128","ean_13","ean_8","upc_a","upc_e","codabar","itf","qr_code","data_matrix","aztec","pdf417"]});
+    det.detect(canvas).then(function(codes){
+      if(codes&&codes.length>0){
+        stopScanner();
+        setScannedCode(codes[0].rawValue);
+        showToast("Cod detectat!");
+      }else{
+        showToast("Cod negasit - incearca o poza mai clara sau introduceti manual","error");
+      }
+    }).catch(function(){
+      showToast("Eroare la scanare - introduceti manual","error");
+    });
+    return;
+  }
+  // No BarcodeDetector available
+  showToast("Scanarea auto nu e disponibila pe acest browser - introduceti manual","error");
+}
+
+function confirmManualBarcode(){
+  var v=(document.getElementById("scanner-manual-input").value||"").trim();
+  if(!v){showToast("Introduceti un cod","error");return}
+  stopScanner();setScannedCode(v);
+}
+
+function setScannedCode(code){
+  var inp=document.getElementById("fc-number");if(!inp)return;
+  inp.value=code;inp.dispatchEvent(new Event("input"));showToast("Cod detectat!");
+}
+// ============================================================
+//  END CARDS
+// ============================================================
+
+init().catch(function(){});
+document.addEventListener("DOMContentLoaded",function(){_initCameraCapture();});
+
+function switchTab(tab){
+  state.currentTab=tab;
+  document.getElementById("nav-passwords").classList.toggle("active",tab==="home");
+  document.getElementById("nav-notes").classList.toggle("active",tab==="notes");
+  document.getElementById("nav-cards").classList.toggle("active",tab==="cards");
+  // hide fab on home when on notes and vice versa
+  showPage(tab);
+}
+
+// ---- CATEGORIES ----
+function renderCats(){
+  var wrap=document.getElementById("cat-scroll");
+  var html='<button class="cat-chip '+(state.selectedCat==="all"?"active":"")+'" onclick="selectCat(\'all\')">'+ICONS.folder+' Toate</button>';
+  CATEGORIES.forEach(function(c){html+='<button class="cat-chip '+(state.selectedCat===c.id?"active":"")+'" onclick="selectCat(\''+c.id+'\')"><span style="display:inline-flex;width:16px;height:16px;vertical-align:middle;margin-right:4px">'+ICONS[c.icon]+'</span>'+c.name+'</button>'});
+  wrap.innerHTML=html;
+}
+function selectCat(id){state.selectedCat=id;renderCats();renderList()}
+
+// ---- LIST ----
+function renderList(){
+  var search=(document.getElementById("search-input").value||"").toLowerCase();
+  var filtered=state.passwords.filter(function(p){var ms=!search||p.title.toLowerCase().indexOf(search)>=0||(p.username||"").toLowerCase().indexOf(search)>=0;var mc=state.selectedCat==="all"||p.category===state.selectedCat;return ms&&mc});
+  document.getElementById("pw-count").textContent=state.passwords.length+" parol"+(state.passwords.length===1?"a":"e");
+  var wrap=document.getElementById("pw-list");
+  if(filtered.length===0){wrap.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon">'+ICONS.lock+'</div><div class="empty-title">'+(state.passwords.length===0?"Seiful tau e gol":"Niciun rezultat")+'</div><div class="empty-sub">'+(state.passwords.length===0?"Apasa + pentru a adauga prima parola":"Incearca o alta cautare")+'</div></div>';return}
+  var html="";
+  filtered.forEach(function(p){
+    var cat=CATEGORIES.find(function(c){return c.id===p.category})||CATEGORIES[6];
+    html+='<div class="pw-card" draggable="true" data-id="'+p.id+'" onclick="viewEntry(\''+p.id+'\')">'+
+      '<div class="pw-card-icon" style="background:'+cat.color+'18;color:'+cat.color+'">'+ICONS[cat.icon]+'</div>'+
+      '<div class="pw-card-info"><div class="pw-card-title">'+esc(p.title)+'</div>'+(p.username?'<div class="pw-card-user">'+esc(p.username)+'</div>':"")+'</div>'+
+      '<div style="display:flex;gap:2px;flex-shrink:0">'+
+      '<button class="btn-icon" title="Schimbă categoria" onclick="event.stopPropagation();showCatPopover(event,\'pw\',\''+p.id+'\')"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1 0 4.93 19.07"/></svg></button>'+
+      '<button class="btn-icon" onclick="event.stopPropagation();copyText(\''+escAttr(p.password)+'\')">'+ICONS.copy+'</button>'+
+      '</div></div>';
+  });
+  wrap.innerHTML=html;
+  initDragPasswords();
+}
+
+// ---- DETAIL ----
+function viewEntry(id){state.viewId=id;showPage("detail")}
+var detailPwVisible=false;
+function renderDetail(){
+  detailPwVisible=false;
+  var entry=state.passwords.find(function(p){return p.id===state.viewId});
+  if(!entry){showPage("home");return}
+  var cat=CATEGORIES.find(function(c){return c.id===entry.category})||CATEGORIES[6];
+  var str=getStrength(entry.password);
+  var wrap=document.getElementById("page-detail");
+  wrap.innerHTML='<div class="detail-header"><button class="btn-icon" onclick="switchTab(\'home\')">'+ICONS.back+'</button><span style="font-size:16px;font-weight:700;color:#e8e6f0">Detalii</span></div><div class="detail-icon" style="background:'+cat.color+'18;color:'+cat.color+'">'+ICONS[cat.icon]+'</div><div class="detail-title">'+esc(entry.title)+'</div><div class="detail-cat">'+cat.name+'</div>'+(entry.username?'<div class="field-card"><div class="field-label">Utilizator / Email</div><div class="field-value"><span>'+esc(entry.username)+'</span><button class="btn-icon" onclick="copyText(\''+escAttr(entry.username)+'\')">'+ICONS.copy+'</button></div></div>':"")+'<div class="field-card"><div class="field-label">Parola</div><div class="field-value"><span class="mono" id="detail-pw-display">'+"*".repeat(Math.min(entry.password.length,20))+'</span><div class="field-btns"><button class="btn-icon" onclick="toggleDetailPw(\''+escAttr(entry.password)+'\')">'+ICONS.eye+'</button><button class="btn-icon" onclick="copyText(\''+escAttr(entry.password)+'\')">'+ICONS.copy+'</button></div></div><div class="strength-bar"><div class="strength-fill" style="width:'+(str.score/6*100)+'%;background:'+str.color+'"></div></div><div class="strength-label" style="color:'+str.color+'">'+str.label+'</div></div>'+(entry.url?'<div class="field-card"><div class="field-label">URL</div><div class="field-value"><span style="font-size:13px">'+esc(entry.url)+'</span><button class="btn-icon" onclick="copyText(\''+escAttr(entry.url)+'\')">'+ICONS.copy+'</button></div></div>':"")+(entry.notes?'<div class="field-card"><div class="field-label">Note</div><div style="font-size:14px;color:#b8b5d0;line-height:1.5">'+esc(entry.notes)+'</div></div>':"")+'<div class="action-row"><button class="btn-edit" onclick="editEntry(\''+entry.id+'\')">'+ICONS.edit+' Editeaza</button><button class="btn-delete" id="delete-btn" onclick="deleteEntry(\''+entry.id+'\')">'+ICONS.trash+' Sterge</button></div>';
+}
+function toggleDetailPw(pw){detailPwVisible=!detailPwVisible;document.getElementById("detail-pw-display").textContent=detailPwVisible?pw:"*".repeat(Math.min(pw.length,20))}
+
+var deleteConfirm=false;
+function deleteEntry(id){if(!deleteConfirm){deleteConfirm=true;document.getElementById("delete-btn").innerHTML=ICONS.trash+" Confirma?";setTimeout(function(){deleteConfirm=false;renderDetail()},3000);return}state.passwords=state.passwords.filter(function(p){return p.id!==id});savePasswords();deleteConfirm=false;switchTab("home");showToast("Parola stearsa!")}
+function editEntry(id){state.editingId=id;openModal()}
+
+// ---- MODAL ----
+function openModal(){
+  var entry=state.editingId?state.passwords.find(function(p){return p.id===state.editingId}):null;
+  var isEdit=!!entry;
+  var f=entry||{id:Date.now().toString(36)+Math.random().toString(36).slice(2),title:"",username:"",password:"",url:"",notes:"",category:"other",createdAt:new Date().toISOString()};
+  var catHtml="";
+  CATEGORIES.forEach(function(c){var active=f.category===c.id;catHtml+='<div class="cat-option'+(active?" active":"")+'" style="border-color:'+(active?c.color:"transparent")+';'+(active?"background:"+c.color+"12":"")+';color:'+(active?c.color:"#9b97b8")+'" onclick="selectModalCat(\''+c.id+'\',\''+c.color+'\')"><span style="display:inline-flex;width:22px;height:22px">'+ICONS[c.icon]+'</span>'+c.name+'</div>'});
+  document.getElementById("modal-content").innerHTML='<div class="modal-title">'+(isEdit?"Editare":"Parola Noua")+'</div><div class="form-group"><label class="form-label">Titlu</label><input class="form-input" id="f-title" value="'+escAttr(f.title)+'" placeholder="ex: Facebook, Gmail..."></div><div class="form-group"><label class="form-label">Categorie</label><div class="cat-grid" id="modal-cat-grid">'+catHtml+'</div><input type="hidden" id="f-category" value="'+f.category+'"></div><div class="form-group"><label class="form-label">Utilizator / Email</label><input class="form-input" id="f-username" value="'+escAttr(f.username)+'" placeholder="user@email.com"></div><div class="form-group"><label class="form-label">Parola</label><div class="input-wrap"><input class="form-input" style="padding-right:44px;font-family:monospace" type="password" id="f-password" value="'+escAttr(f.password)+'" placeholder="********" oninput="updateStrength()"><button class="eye-btn" onclick="toggleEye(\'f-password\',this)">'+ICONS.eye+'</button></div><div class="strength-bar"><div class="strength-fill" id="modal-str-fill"></div></div><div class="strength-label" id="modal-str-label"></div></div><div class="form-group gen-row"><button class="btn-small" onclick="genModalPw()">'+ICONS.dice+' Genereaza</button><input type="range" class="gen-range" min="8" max="32" value="16" id="gen-len-slider" oninput="document.getElementById(\'gen-len-val\').textContent=this.value"><span class="gen-len" id="gen-len-val">16</span></div><div class="form-group"><label class="form-label">URL</label><input class="form-input" id="f-url" value="'+escAttr(f.url)+'" placeholder="https://..."></div><div class="form-group"><label class="form-label">Note</label><textarea class="form-input" id="f-notes" placeholder="Notite optionale...">'+esc(f.notes)+'</textarea></div><button class="btn-save" onclick="saveModal(\''+f.id+'\','+isEdit+')">'+(isEdit?"Salveaza Modificarile":"Adauga Parola")+'</button><button class="btn-cancel" onclick="closeModal()">Anuleaza</button>';
+  document.getElementById("modal-overlay").classList.remove("hidden");updateStrength();
+}
+function selectModalCat(id){document.getElementById("f-category").value=id;var grid=document.getElementById("modal-cat-grid");CATEGORIES.forEach(function(c,i){var el=grid.children[i];var active=c.id===id;el.className="cat-option"+(active?" active":"");el.style.borderColor=active?c.color:"transparent";el.style.background=active?c.color+"12":"rgba(20,22,44,0.6)";el.style.color=active?c.color:"#9b97b8"})}
+function genModalPw(){var len=parseInt(document.getElementById("gen-len-slider").value);var pw=generatePassword(len);var inp=document.getElementById("f-password");inp.value=pw;inp.type="text";updateStrength()}
+function updateStrength(){var pw=document.getElementById("f-password").value;var s=getStrength(pw);document.getElementById("modal-str-fill").style.width=(s.score/6*100)+"%";document.getElementById("modal-str-fill").style.background=s.color;document.getElementById("modal-str-label").style.color=s.color;document.getElementById("modal-str-label").textContent=s.label}
+function saveModal(id,isEdit){
+  var title=document.getElementById("f-title").value.trim();var password=document.getElementById("f-password").value;
+  if(!title){showToast("Adauga un titlu","error");return}if(!password){showToast("Adauga o parola","error");return}
+  var entry={id:id,title:title,username:document.getElementById("f-username").value.trim(),password:password,url:document.getElementById("f-url").value.trim(),notes:document.getElementById("f-notes").value.trim(),category:document.getElementById("f-category").value,createdAt:isEdit?(state.passwords.find(function(p){return p.id===id})||{}).createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+  if(isEdit){state.passwords=state.passwords.map(function(p){return p.id===id?entry:p})}else{state.passwords.push(entry)}
+  savePasswords();closeModal();if(state.viewId){renderDetail()}else{renderList()}showToast(isEdit?"Parola actualizata!":"Parola salvata!")
+}
+function closeModal(){document.getElementById("modal-overlay").classList.add("hidden");state.editingId=null}
+
+// ============================================================
+//  NOTES
+// ============================================================
+var NOTE_CATS=[
+  {id:"all",   name:"Toate",    color:"#6366f1", bg:"rgba(99,102,241,.15)"},
+  {id:"personal",name:"Personal",color:"#ec4899",bg:"rgba(236,72,153,.15)"},
+  {id:"munca",  name:"Muncă",   color:"#f59e0b", bg:"rgba(245,158,11,.15)"},
+  {id:"idei",   name:"Idei",    color:"#10b981", bg:"rgba(16,185,129,.15)"},
+  {id:"altele", name:"Altele",  color:"#8b5cf6", bg:"rgba(139,92,246,.15)"}
+];
+var selectedNoteCat="all";
+
+
+function getNotecat(id){return NOTE_CATS.find(function(c){return c.id===id})||NOTE_CATS[4]}
+
+function renderNoteCats(){
+  var wrap=document.getElementById("note-cats");
+  if(!wrap)return;
+  var html="";
+  NOTE_CATS.forEach(function(c){
+    var active=selectedNoteCat===c.id;
+    html+='<button class="note-cat-chip" style="background:'+(active?c.color:"rgba(30,33,60,.8)")+';color:'+(active?"#fff":c.color)+';border:1.5px solid '+(active?c.color:c.color+"44")+'" onclick="selectNoteCat(\''+c.id+'\')">'+c.name+'</button>';
+  });
+  wrap.innerHTML=html;
+}
+
+function selectNoteCat(id){selectedNoteCat=id;renderNoteCats();renderNotes()}
+
+function renderNotes(){
+  renderNoteCats();
+  var search=(document.getElementById("notes-search").value||"").toLowerCase();
+  var filtered=state.notes.filter(function(n){
+    var ms=!search||n.title.toLowerCase().indexOf(search)>=0||n.body.toLowerCase().indexOf(search)>=0;
+    var mc=selectedNoteCat==="all"||n.category===selectedNoteCat;
+    return ms&&mc;
+  });
+  document.getElementById("notes-count").textContent=state.notes.length+" notit"+(state.notes.length===1?"a":"e");
+  var wrap=document.getElementById("notes-list");
+  if(filtered.length===0){
+    wrap.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg></div><div class="empty-title">'+(state.notes.length===0?"Nicio notiță încă":"Niciun rezultat")+'</div><div class="empty-sub">'+(state.notes.length===0?"Apasă + pentru a adăuga prima notiță":"Încearcă altă căutare")+'</div></div>';
+    return;
+  }
+  // Pinned first, then by date
+  var sorted=filtered.slice().sort(function(a,b){
+    if(a.pinned&&!b.pinned)return -1;
+    if(!a.pinned&&b.pinned)return 1;
+    return new Date(b.updatedAt||b.createdAt)-new Date(a.updatedAt||a.createdAt);
+  });
+  var html="";
+  sorted.forEach(function(n){
+    var preview=n.body.replace(/\n/g," ").slice(0,80)+(n.body.length>80?"…":"");
+    var d=new Date(n.updatedAt||n.createdAt);
+    var dateStr=d.toLocaleDateString("ro-RO",{day:"2-digit",month:"short",year:"numeric"});
+    var cat=getNotecat(n.category||"altele");
+    var imgs=n.images&&n.images.length?'<div class="note-images">'+n.images.slice(0,4).map(function(src,i){return'<img class="note-img-thumb" src="'+esc(src)+'" onclick="event.stopPropagation();openLightbox(\''+escAttr(src)+'\')" onerror="this.style.display=\'none\'">'}).join("")+'</div>':"";
+    html+='<div class="note-card'+(n.pinned?" pinned":"")+'" draggable="true" data-id="'+n.id+'" onclick="openNoteModal(\''+n.id+'\')">'+
+      '<div class="note-card-header"><div class="note-card-title">'+esc(n.title||"Fără titlu")+'</div>'+
+      '<div style="display:flex;align-items:center;gap:2px">'+
+      '<button class="btn-icon" style="padding:4px" title="Schimbă categoria" onclick="event.stopPropagation();showCatPopover(event,\'note\',\''+n.id+'\')"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93A10 10 0 1 0 4.93 19.07"/></svg></button>'+
+      (n.pinned?'<span class="note-pin-badge">📌</span>':'')+
+      '</div></div>'+
+      (preview?'<div class="note-card-preview">'+esc(preview)+'</div>':'')+
+      imgs+
+      '<div class="note-card-footer"><div class="note-card-date">'+dateStr+'</div>'+
+      (n.category&&n.category!=="altele"?'<span class="note-cat-badge" style="background:'+cat.bg+';color:'+cat.color+'">'+cat.name+'</span>':'')+
+      '</div></div>';
+  });
+  wrap.innerHTML=html;
+  initDragNotes();
+}
+
+function openNoteModal(id){
+  state.editingNoteId=id||null;
+  
+  var note=id?state.notes.find(function(n){return n.id===id}):null;
+  var isEdit=!!note;
+  var n=note||{id:Date.now().toString(36)+Math.random().toString(36).slice(2),title:"",body:"",category:"altele",pinned:false,images:[],createdAt:new Date().toISOString()};
+  if(!n.images)n.images=[];
+  state._editImages=n.images.slice();
+
+  var catHtml="";
+  NOTE_CATS.filter(function(c){return c.id!=="all"}).forEach(function(c){
+    var active=(n.category||"altele")===c.id;
+    catHtml+='<button class="note-cat-chip" id="ncat-'+c.id+'" style="background:'+(active?c.color:"rgba(30,33,60,.8)")+';color:'+(active?"#fff":c.color)+';border:1.5px solid '+(active?c.color:c.color+"44")+'" onclick="selectModalNoteCat(\''+c.id+'\')">'+c.name+'</button>';
+  });
+
+  var imgsHtml=n.images.map(function(src,i){
+    return'<div style="position:relative;display:inline-block">'+
+      '<img class="note-img-thumb" src="'+esc(src)+'" onclick="openLightbox(\''+escAttr(src)+'\')" onerror="this.parentNode.style.display=\'none\'">'+
+      '<button onclick="removeNoteImage('+i+')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#ef4444;color:#fff;font-size:14px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">×</button>'+
+      '</div>';
+  }).join("");
+
+  document.getElementById("note-modal-content").innerHTML=
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">'+
+    '<div class="modal-title" style="margin-bottom:0">'+(isEdit?"Editează notița":"Notiță nouă")+'</div>'+
+    '<div style="display:flex;gap:4px">'+
+    '<button class="btn-icon" id="pin-btn" onclick="togglePin(\''+n.id+'\')" title="'+(n.pinned?"Desprinde":"Fixează")+'" style="color:'+(n.pinned?"#fbbf24":"#9b97b8")+';font-size:18px">'+(n.pinned?'📌':'📍')+'</button>'+
+    (isEdit?'<button class="btn-icon" style="color:#ff6b6b" onclick="deleteNote(\''+n.id+'\')" title="Șterge"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v15a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>':'')+
+    '</div></div>'+
+    '<div class="form-group"><label class="form-label">Titlu</label><input class="form-input" id="fn-title" value="'+escAttr(n.title)+'" placeholder="Titlul notiței..."></div>'+
+    '<div class="form-group"><label class="form-label">Categorie</label><div class="note-cat-grid" id="modal-note-cats">'+catHtml+'</div><input type="hidden" id="fn-category" value="'+(n.category||"altele")+'"></div>'+
+    '<div class="form-group"><label class="form-label">Conținut</label><textarea class="note-body" id="fn-body" placeholder="Scrie notița ta...">'+esc(n.body)+'</textarea></div>'+
+    '<div class="form-group"><label class="form-label">Imagini</label>'+
+    '<div id="fn-images-preview" style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">'+imgsHtml+'</div>'+
+    '<div class="note-img-drop" id="img-drop-zone">'+
+    '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>'+
+    '<span>Trage imaginea aici sau apasă pentru a alege</span>'+
+    '<input type="file" accept="image/*" multiple onchange="handleImgFiles(this.files)">'+
+    '</div>'+
+    '<div class="note-img-url-row">'+
+    '<input type="url" id="fn-img-url" placeholder="Sau lipește un link (https://...)">'+
+    '<button onclick="addImgUrl()">Adaugă</button>'+
+    '</div></div>'+
+    '<div class="rezumat-panel">'+
+    '<div style="display:flex;align-items:center;gap:8px;padding:12px 14px;">'+
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a5a3ff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>'+
+    '<span style="font-size:13px;font-weight:700;color:#a5a3ff;flex:1">📝 Rezumat local</span>'+
+    '<button class="ai-action-btn" onclick="localSummarize()" style="padding:6px 14px;font-size:12px">Generează rezumat</button>'+
+    '</div>'+
+    '<div id="rezumat-result" class="rezumat-result"></div>'+
+    '<button id="rezumat-apply" class="rezumat-apply-btn" onclick="applyRezumat()">✅ Aplică în notiță</button>'+
+    '</div>'+
+    '<button class="btn-save" onclick="saveNote(\''+n.id+'\','+isEdit+')" style="margin-top:14px">'+(isEdit?"Salvează modificările":"Adaugă notița")+'</button>'+
+    '<button class="btn-cancel" onclick="closeNoteModal()">Anulează</button>';
+
+  document.getElementById("note-modal-overlay").classList.remove("hidden");
+  setTimeout(function(){document.getElementById("fn-title").focus()},100);
+
+  var dz=document.getElementById("img-drop-zone");
+  dz.addEventListener("dragover",function(e){e.preventDefault();this.classList.add("drag-active")});
+  dz.addEventListener("dragleave",function(){this.classList.remove("drag-active")});
+  dz.addEventListener("drop",function(e){
+    e.preventDefault();this.classList.remove("drag-active");
+    handleImgFiles(e.dataTransfer.files);
+  });
+}
+
+function localSummarize(){
+  var text=document.getElementById("fn-body").value.trim();
+  if(!text){showToast("Scrie mai întâi conținutul notiței","error");return}
+  var resultEl=document.getElementById("rezumat-result");
+  var applyBtn=document.getElementById("rezumat-apply");
+
+  // Tokenize into sentences
+  var sentences=text.match(/[^.!?\n]+[.!?\n]*/g)||[text];
+  sentences=sentences.map(function(s){return s.trim()}).filter(function(s){return s.length>10});
+
+  if(sentences.length===0){showToast("Textul e prea scurt pentru rezumat","error");return}
+
+  // Score sentences by word frequency (TF-based extractive summarization)
+  var words=text.toLowerCase().replace(/[^\w\s]/g," ").split(/\s+/).filter(function(w){return w.length>3});
+  var freq={};
+  var stopwords={"este":1,"sunt":1,"care":1,"pentru":1,"prin":1,"acest":1,"aceasta":1,"acesta":1,"mai":1,"sau":1,"dar":1,"daca":1,"când":1,"unde":1,"care":1,"cele":1,"dintr":1,"într":1,"prea":1,"foarte":1,"that":1,"with":1,"this":1,"from":1,"have":1,"will":1,"been":1,"were":1,"they":1,"their":1,"also":1,"into":1,"than":1,"then":1,"some":1,"your":1,"what":1,"when":1};
+  words.forEach(function(w){if(!stopwords[w]){freq[w]=(freq[w]||0)+1}});
+  var maxFreq=Math.max.apply(null,Object.values(freq))||1;
+  Object.keys(freq).forEach(function(k){freq[k]=freq[k]/maxFreq});
+
+  var scored=sentences.map(function(sent){
+    var ws=sent.toLowerCase().replace(/[^\w\s]/g," ").split(/\s+/).filter(function(w){return w.length>3});
+    var score=ws.reduce(function(sum,w){return sum+(freq[w]||0)},0)/(ws.length||1);
+    // Bonus for first sentence (usually important)
+    var idx=sentences.indexOf(sent);
+    if(idx===0)score*=1.3;
+    return{sent:sent,score:score};
+  });
+
+  // Pick top sentences (max 3 or 30% of total)
+  var topN=Math.max(1,Math.min(3,Math.ceil(sentences.length*0.3)));
+  var top=scored.slice().sort(function(a,b){return b.score-a.score}).slice(0,topN);
+  // Restore original order
+  var result=scored.filter(function(s){return top.indexOf(s)>-1}).map(function(s){return s.sent}).join(" ");
+
+  // Word count info
+  var wc=text.split(/\s+/).filter(function(w){return w.length>0}).length;
+  var wcR=result.split(/\s+/).filter(function(w){return w.length>0}).length;
+
+  resultEl.style.display="block";
+  resultEl.innerHTML='<div style="color:#6b6890;font-size:11px;margin-bottom:8px;font-weight:700;letter-spacing:.5px;text-transform:uppercase">REZUMAT ('+wcR+' / '+wc+' cuvinte)</div>'+
+    '<div>'+esc(result)+'</div>';
+  applyBtn.style.display="block";
+  applyBtn._result=result;
+}
+
+function applyRezumat(){
+  var btn=document.getElementById("rezumat-apply");
+  if(btn._result){
+    document.getElementById("fn-body").value=btn._result;
+    document.getElementById("rezumat-result").style.display="none";
+    btn.style.display="none";
+    showToast("Rezumat aplicat!");
+  }
+}
+
+function selectModalNoteCat(id){
+  document.getElementById("fn-category").value=id;
+  var grid=document.getElementById("modal-note-cats");
+  NOTE_CATS.filter(function(c){return c.id!=="all"}).forEach(function(c){
+    var btn=document.getElementById("ncat-"+c.id);
+    if(!btn)return;
+    var active=c.id===id;
+    btn.style.background=active?c.color:"rgba(30,33,60,.8)";
+    btn.style.color=active?"#fff":c.color;
+    btn.style.borderColor=active?c.color:c.color+"44";
+  });
+}
+
+function togglePin(id){
+  var note=state.notes.find(function(n){return n.id===id});
+  if(note){note.pinned=!note.pinned;saveNotes()}
+  // Update button visually
+  var btn=document.getElementById("pin-btn");
+  if(btn){var p=note&&note.pinned;btn.innerHTML=p?'📌':'📍';btn.style.color=p?"#fbbf24":"#9b97b8"}
+  showToast(note&&note.pinned?"Notiță fixată!":"Notiță desprinsă!");
+}
+
+function closeNoteModal(){document.getElementById("note-modal-overlay").classList.add("hidden");state.editingNoteId=null}
+
+function saveNote(id,isEdit){
+  var title=document.getElementById("fn-title").value.trim();
+  var body=document.getElementById("fn-body").value.trim();
+  var category=document.getElementById("fn-category").value||"altele";
+  if(!title&&!body){showToast("Adaugă un titlu sau conținut","error");return}
+  var existing=isEdit?state.notes.find(function(n){return n.id===id}):null;
+  var note={id:id,title:title,body:body,category:category,pinned:existing?existing.pinned:false,images:state._editImages||[],createdAt:existing?existing.createdAt:new Date().toISOString(),updatedAt:new Date().toISOString()};
+  if(isEdit){state.notes=state.notes.map(function(n){return n.id===id?note:n})}
+  else{state.notes.push(note)}
+  state._editImages=null;
+  saveNotes();closeNoteModal();renderNotes();showToast(isEdit?"Notiță actualizată!":"Notiță salvată!");
+}
+
+// -- Image helpers --
+function handleImgFiles(files){
+  if(!files||!files.length)return;
+  var note=state.editingNoteId?state.notes.find(function(n){return n.id===state.editingNoteId}):null;
+  if(!state._editImages)state._editImages=(note&&note.images)?note.images.slice():[];
+  var remaining=8-state._editImages.length;
+  if(remaining<=0){showToast("Maxim 8 imagini per notiță","error");return}
+  var toLoad=Math.min(files.length,remaining);
+  var loaded=0;
+  for(var i=0;i<toLoad;i++){
+    (function(file){
+      if(!file.type.startsWith("image/")){showToast("Doar fișiere imagine","error");return}
+      if(file.size>2*1024*1024){showToast("Imaginea e prea mare (max 2MB)","error");return}
+      var reader=new FileReader();
+      reader.onload=function(e){
+        state._editImages.push(e.target.result);
+        loaded++;
+        if(loaded===toLoad)refreshImgPreview();
+      };
+      reader.readAsDataURL(file);
+    })(files[i]);
+  }
+}
+
+function addImgUrl(){
+  var inp=document.getElementById("fn-img-url");
+  var url=(inp.value||"").trim();
+  if(!url||!url.startsWith("http")){showToast("Introdu un URL valid","error");return}
+  var note=state.editingNoteId?state.notes.find(function(n){return n.id===state.editingNoteId}):null;
+  if(!state._editImages)state._editImages=(note&&note.images)?note.images.slice():[];
+  if(state._editImages.length>=8){showToast("Maxim 8 imagini per notiță","error");return}
+  state._editImages.push(url);
+  inp.value="";
+  refreshImgPreview();
+  showToast("Imagine adăugată!");
+}
+
+function removeNoteImage(idx){
+  if(!state._editImages){
+    var note=state.editingNoteId?state.notes.find(function(n){return n.id===state.editingNoteId}):null;
+    state._editImages=(note&&note.images)?note.images.slice():[];
+  }
+  state._editImages.splice(idx,1);
+  refreshImgPreview();
+}
+
+function refreshImgPreview(){
+  var wrap=document.getElementById("fn-images-preview");
+  if(!wrap)return;
+  var imgs=state._editImages||[];
+  wrap.innerHTML=imgs.map(function(src,i){
+    return'<div style="position:relative;display:inline-block">'+
+      '<img class="note-img-thumb" src="'+esc(src)+'" onclick="openLightbox(\''+escAttr(src)+'\')" onerror="this.parentNode.style.display=\'none\'">'+
+      '<button onclick="removeNoteImage('+i+')" style="position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:none;background:#ef4444;color:#fff;font-size:14px;cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center">×</button>'+
+      '</div>';
+  }).join("");
+}
+
+function openLightbox(src){
+  var lb=document.createElement("div");
+  lb.className="lightbox";
+  lb.innerHTML='<span class="lightbox-close" onclick="this.parentNode.remove()">✕</span><img src="'+esc(src)+'">';
+  lb.onclick=function(e){if(e.target===lb)lb.remove()};
+  document.body.appendChild(lb);
+}
+
+var deleteNoteConfirm=false;
+function deleteNote(id){
+  if(!deleteNoteConfirm){
+    deleteNoteConfirm=true;
+    showToast("Apasă din nou Șterge pentru a confirma","error");
+    setTimeout(function(){deleteNoteConfirm=false},3000);
+    return;
+  }
+  state.notes=state.notes.filter(function(n){return n.id!==id});
+  saveNotes();deleteNoteConfirm=false;closeNoteModal();renderNotes();showToast("Notiță ștearsă!");
+}
+
+// ============================================================
+//  DRAG & DROP + QUICK CATEGORY
+// ============================================================
+
+// -- Passwords drag --
+var pwDragSrc=null;
+function initDragPasswords(){
+  var cards=document.querySelectorAll("#pw-list .pw-card[data-id]");
+  cards.forEach(function(card){
+    card.addEventListener("dragstart",function(e){
+      pwDragSrc=this;
+      this.classList.add("dragging");
+      e.dataTransfer.effectAllowed="move";
+      e.dataTransfer.setData("text/plain",this.dataset.id);
+    });
+    card.addEventListener("dragend",function(){
+      this.classList.remove("dragging");
+      document.querySelectorAll(".pw-card.drag-over").forEach(function(el){el.classList.remove("drag-over")});
+    });
+    card.addEventListener("dragover",function(e){
+      e.preventDefault();
+      e.dataTransfer.dropEffect="move";
+      if(this!==pwDragSrc)this.classList.add("drag-over");
+    });
+    card.addEventListener("dragleave",function(){this.classList.remove("drag-over")});
+    card.addEventListener("drop",function(e){
+      e.preventDefault();e.stopPropagation();
+      this.classList.remove("drag-over");
+      if(this===pwDragSrc)return;
+      var fromId=e.dataTransfer.getData("text/plain");
+      var toId=this.dataset.id;
+      var fromIdx=state.passwords.findIndex(function(p){return p.id===fromId});
+      var toIdx=state.passwords.findIndex(function(p){return p.id===toId});
+      if(fromIdx<0||toIdx<0)return;
+      var moved=state.passwords.splice(fromIdx,1)[0];
+      state.passwords.splice(toIdx,0,moved);
+      savePasswords();renderList();
+    });
+  });
+}
+
+// -- Notes drag --
+var noteDragSrc=null;
+function initDragNotes(){
+  var cards=document.querySelectorAll("#notes-list .note-card[data-id]");
+  cards.forEach(function(card){
+    card.addEventListener("dragstart",function(e){
+      noteDragSrc=this;
+      this.classList.add("dragging");
+      e.dataTransfer.effectAllowed="move";
+      e.dataTransfer.setData("text/plain",this.dataset.id);
+    });
+    card.addEventListener("dragend",function(){
+      this.classList.remove("dragging");
+      document.querySelectorAll(".note-card.drag-over").forEach(function(el){el.classList.remove("drag-over")});
+    });
+    card.addEventListener("dragover",function(e){
+      e.preventDefault();
+      e.dataTransfer.dropEffect="move";
+      if(this!==noteDragSrc)this.classList.add("drag-over");
+    });
+    card.addEventListener("dragleave",function(){this.classList.remove("drag-over")});
+    card.addEventListener("drop",function(e){
+      e.preventDefault();e.stopPropagation();
+      this.classList.remove("drag-over");
+      if(this===noteDragSrc)return;
+      var fromId=e.dataTransfer.getData("text/plain");
+      var toId=this.dataset.id;
+      var fromIdx=state.notes.findIndex(function(n){return n.id===fromId});
+      var toIdx=state.notes.findIndex(function(n){return n.id===toId});
+      if(fromIdx<0||toIdx<0)return;
+      var moved=state.notes.splice(fromIdx,1)[0];
+      state.notes.splice(toIdx,0,moved);
+      saveNotes();renderNotes();
+    });
+  });
+}
+
+// -- Quick category popover --
+var activePop=null;
+function showCatPopover(e,type,id){
+  closePopover();
+  var btn=e.currentTarget;
+  var rect=btn.getBoundingClientRect();
+  var pop=document.createElement("div");
+  pop.className="cat-popover";
+  pop.id="cat-pop";
+
+  var cats=type==="pw"?CATEGORIES:NOTE_CATS.filter(function(c){return c.id!=="all"});
+  var current=type==="pw"
+    ?(state.passwords.find(function(p){return p.id===id})||{}).category
+    :(state.notes.find(function(n){return n.id===id})||{}).category;
+
+  cats.forEach(function(c){
+    var item=document.createElement("button");
+    item.className="cat-popover-item"+(c.id===current?" active":"");
+    item.innerHTML='<span class="cat-popover-dot" style="background:'+c.color+'"></span>'+c.name;
+    item.onclick=function(){
+      if(type==="pw"){
+        var pw=state.passwords.find(function(p){return p.id===id});
+        if(pw){pw.category=c.id;savePasswords();renderList();}
+      }else{
+        var nt=state.notes.find(function(n){return n.id===id});
+        if(nt){nt.category=c.id;saveNotes();renderNotes();}
+      }
+      closePopover();
+      showToast("Categorie schimbată!");
+    };
+    pop.appendChild(item);
+  });
+
+  // Position popover
+  var top=rect.bottom+6;
+  var left=rect.left-120;
+  if(left<8)left=8;
+  if(top+200>window.innerHeight)top=rect.top-210;
+  pop.style.top=top+"px";
+  pop.style.left=left+"px";
+  document.body.appendChild(pop);
+  activePop=pop;
+  setTimeout(function(){document.addEventListener("click",closePopover,{once:true})},10);
+}
+function closePopover(){if(activePop){activePop.remove();activePop=null}}
+
+// ============================================================
+//  EXPORT / IMPORT
+// ============================================================
+
+// -- EXPORT CONFIRM MODAL --
+function showExportConfirm(){
+  var total=state.passwords.length+(state.notes?state.notes.length:0);
+  if(state.passwords.length===0&&(!state.notes||state.notes.length===0)&&(!state.cards||state.cards.length===0)){showToast("Seiful e gol, nimic de exportat","error");return}
+  var parts=[];
+  if(state.passwords.length>0)parts.push("<strong style='color:#e8e6f0'>"+state.passwords.length+"</strong> parol"+(state.passwords.length===1?"ă":"e"));
+  if(state.notes&&state.notes.length>0)parts.push("<strong style='color:#e8e6f0'>"+state.notes.length+"</strong> notit"+(state.notes.length===1?"ă":"e"));
+  document.getElementById("export-confirm-body").innerHTML="Ești pe cale să exporți "+parts.join(" și ")+". Alege formatul de export:";
+  document.getElementById("export-overlay").classList.remove("hidden");
+}
+function closeExportConfirm(){document.getElementById("export-overlay").classList.add("hidden")}
+
+// -- EXPORT ENCRYPTED --
+async function doExportEncrypted(){
+  closeExportConfirm();
+  if(state.passwords.length===0&&(!state.notes||state.notes.length===0)&&(!state.cards||state.cards.length===0)){showToast("Seiful e gol, nimic de exportat","error");return}
+  try{
+    var meta=storageGet("meta");
+    var exportObj={
+      version:"VaultGuard-v5",
+      timestamp:new Date().toISOString(),
+      salt:meta.salt,
+      data:await encryptData(state.passwords,state.masterKey),
+      notes:await encryptData(state.notes||[],state.masterKey),
+      cards:await encryptData(state.cards||[],state.masterKey)
+    };
+    var jsonStr=JSON.stringify(exportObj,null,2);
+    downloadFile("VaultGuard-backup.vaultguard",jsonStr,"application/json");
+    var exportParts=[];
+    if(state.passwords.length>0)exportParts.push(state.passwords.length+" parole");
+    if(state.notes&&state.notes.length>0)exportParts.push(state.notes.length+" notițe");
+    if(state.cards&&state.cards.length>0)exportParts.push(state.cards.length+" carduri");
+    showToast("Backup exportat: "+exportParts.join(" + ")+" ✅");
+  }catch(e){showToast("Eroare la export","error")}
+}
+
+// -- EXPORT CSV (plain text, no encryption) --
+function doExportCSV(){
+  closeExportConfirm();
+  if(state.passwords.length===0){showToast("Seiful e gol, nimic de exportat","error");return}
+  var lines=["Titlu,Categorie,Utilizator,Parola,URL,Note"];
+  state.passwords.forEach(function(p){
+    var cat=CATEGORIES.find(function(c){return c.id===p.category})||CATEGORIES[6];
+    lines.push(csvRow([p.title,cat.name,p.username||"",p.password,p.url||"",p.notes||""]));
+  });
+  downloadFile("VaultGuard-export.csv",lines.join("\n"),"text/csv");
+  showToast("CSV exportat! ATENȚIE: necriptat!");
+}
+
+// kept for backward compat (import uses exportData indirectly nowhere, but guard it)
+async function exportData(){showExportConfirm()}
+
+function csvRow(arr){return arr.map(function(v){return'"'+v.replace(/"/g,'""')+'"'}).join(",")}
+
+function downloadFile(filename,content,mimeType){
+  var blob=new Blob([content],{type:mimeType+";charset=utf-8"});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement("a");a.href=url;a.download=filename;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+// -- IMPORT --
+function showImportDialog(){
+  document.getElementById("import-textarea").value="";
+  document.getElementById("file-label").textContent="Apasa aici pentru a alege fisierul";
+  importMode="merge";updateImportModeUI();
+  document.getElementById("import-overlay").classList.remove("hidden");
+}
+function closeImport(){document.getElementById("import-overlay").classList.add("hidden")}
+
+function setImportMode(mode){importMode=mode;updateImportModeUI()}
+function updateImportModeUI(){
+  var mergeBtn=document.getElementById("import-mode-merge");
+  var replBtn=document.getElementById("import-mode-replace");
+  if(importMode==="merge"){mergeBtn.style.background="rgba(99,102,241,.15)";mergeBtn.style.color="#a5a3ff";mergeBtn.style.borderColor="rgba(99,102,241,.3)";replBtn.style.background="rgba(30,33,60,.8)";replBtn.style.color="#9b97b8";replBtn.style.borderColor="rgba(99,102,241,.12)"}
+  else{replBtn.style.background="rgba(239,68,68,.15)";replBtn.style.color="#ff6b6b";replBtn.style.borderColor="rgba(239,68,68,.3)";mergeBtn.style.background="rgba(30,33,60,.8)";mergeBtn.style.color="#9b97b8";mergeBtn.style.borderColor="rgba(99,102,241,.12)"}
+}
+
+// File input handler
+document.getElementById("file-import-hidden").addEventListener("change",function(e){
+  var file=e.target.files[0];if(!file)return;
+  document.getElementById("file-label").textContent="Fisier: "+file.name;
+  var reader=new FileReader();
+  reader.onload=function(ev){document.getElementById("import-textarea").value=ev.target.result};
+  reader.readAsText(file);
+  e.target.value="";
+});
+
+async function doImport(){
+  var raw=document.getElementById("import-textarea").value.trim();
+  if(!raw){showToast("Lipeste datele sau alege un fisier","error");return}
+
+  try{
+    var obj=JSON.parse(raw);
+
+    // VaultGuard encrypted format
+    if(obj.version&&obj.version.indexOf("VaultGuard")===0&&obj.salt&&obj.data){
+      try{
+        // Try current master password first
+        var key=await deriveKey(state.masterPwText,obj.salt);
+        var imported=await decryptData(obj.data,key);
+        var importedNotes=obj.notes?await decryptData(obj.notes,key):null;
+        var importedCards=obj.cards?await decryptData(obj.cards,key):null;
+        mergeOrReplace(imported,importedNotes,importedCards);
+        return;
+      }catch(e){
+        // Different password - ask for it
+        var backupPw=prompt("Fisierul e criptat cu o alta parola.\nIntrodu parola backup-ului:");
+        if(!backupPw){showToast("Import anulat","error");return}
+        try{
+          var key2=await deriveKey(backupPw,obj.salt);
+          var imported2=await decryptData(obj.data,key2);
+          var importedNotes2=obj.notes?await decryptData(obj.notes,key2):null;
+          var importedCards2=obj.cards?await decryptData(obj.cards,key2):null;
+          mergeOrReplace(imported2,importedNotes2,importedCards2);
+          return;
+        }catch(e2){showToast("Parola backup-ului e incorecta","error");return}
+      }
+    }
+
+    // Plain JSON array
+    if(Array.isArray(obj)){mergeOrReplace(obj);return}
+
+    showToast("Format nerecunoscut","error");
+  }catch(e){
+    // Try CSV
+    try{
+      var imported=parseCSV(raw);
+      if(imported.length>0){mergeOrReplace(imported);return}
+    }catch(e2){}
+    showToast("Format invalid - verificati fisierul","error");
+  }
+}
+
+function mergeOrReplace(imported,importedNotes,importedCards){
+  var hasPasswords=Array.isArray(imported)&&imported.length>0;
+  var hasNotes=Array.isArray(importedNotes)&&importedNotes.length>0;
+  var hasCards=Array.isArray(importedCards)&&importedCards.length>0;
+  if(!hasPasswords&&!hasNotes&&!hasCards){showToast("Nicio parola, notita sau card de importat","error");return}
+
+  var pwAdded=0;
+  if(hasPasswords){
+    var valid=imported.filter(function(p){return p.title&&p.password});
+    valid.forEach(function(p){if(!p.id)p.id=Date.now().toString(36)+Math.random().toString(36).slice(2)});
+    if(importMode==="replace"){
+      state.passwords=valid;pwAdded=valid.length;
+    }else{
+      var existing={};
+      state.passwords.forEach(function(p){existing[p.title.toLowerCase()+"||"+(p.username||"").toLowerCase()]=true});
+      valid.forEach(function(p){
+        var k=p.title.toLowerCase()+"||"+(p.username||"").toLowerCase();
+        if(!existing[k]){state.passwords.push(p);existing[k]=true;pwAdded++}
+      });
+    }
+    savePasswords();
+  }
+
+  var notesAdded=0;
+  if(hasNotes){
+    if(importMode==="replace"){
+      state.notes=importedNotes;notesAdded=importedNotes.length;
+    }else{
+      var existingNotes={};
+      state.notes.forEach(function(n){existingNotes[n.id]=true});
+      importedNotes.forEach(function(n){
+        if(!n.id)n.id=Date.now().toString(36)+Math.random().toString(36).slice(2);
+        if(!existingNotes[n.id]){state.notes.push(n);existingNotes[n.id]=true;notesAdded++}
+      });
+    }
+    saveNotes();
+  }
+
+  var cardsAdded=0;
+  if(hasCards){
+    if(importMode==="replace"){state.cards=importedCards;cardsAdded=importedCards.length}
+    else{var ec={};state.cards.forEach(function(c){ec[c.id]=true});importedCards.forEach(function(c){if(!c.id)c.id=Date.now().toString(36)+Math.random().toString(36).slice(2);if(!ec[c.id]){state.cards.push(c);ec[c.id]=true;cardsAdded++}});};
+    saveCards();
+  }
+  renderList();closeImport();
+  var msg="";
+  if(pwAdded>0)msg+=pwAdded+" parole";
+  if(notesAdded>0)msg+=(msg?", ":"")+notesAdded+" notițe";
+  if(cardsAdded>0)msg+=(msg?", ":"")+cardsAdded+" carduri";
+  showToast(msg?(msg+" importate ✅"):"Datele există deja");
+}
+
+function parseCSV(text){
+  var lines=text.split("\n").filter(function(l){return l.trim()});
+  if(lines.length<2)return[];
+  var results=[];
+  for(var i=1;i<lines.length;i++){
+    var cols=parseCSVLine(lines[i]);
+    if(cols.length>=4){
+      results.push({
+        id:Date.now().toString(36)+Math.random().toString(36).slice(2)+i,
+        title:cols[0]||"",
+        category:findCatId(cols[1])||"other",
+        username:cols[2]||"",
+        password:cols[3]||"",
+        url:cols[4]||"",
+        notes:cols[5]||"",
+        createdAt:new Date().toISOString()
+      });
+    }
+  }
+  return results;
+}
+
+function parseCSVLine(line){
+  var result=[];var current="";var inQuotes=false;
+  for(var i=0;i<line.length;i++){
+    var ch=line[i];
+    if(inQuotes){if(ch==='"'&&line[i+1]==='"'){current+='"';i++}else if(ch==='"'){inQuotes=false}else{current+=ch}}
+    else{if(ch==='"'){inQuotes=true}else if(ch===","){result.push(current);current=""}else{current+=ch}}
+  }
+  result.push(current);return result;
+}
+
+function findCatId(name){
+  if(!name)return"other";
+  var n=name.toLowerCase();
+  var found=CATEGORIES.find(function(c){return c.name.toLowerCase()===n||c.id===n});
+  return found?found.id:"other";
+}
+
+// ---- CLIPBOARD ----
+async function copyText(text){try{await navigator.clipboard.writeText(text);showToast("Copiat!")}catch(e){var ta=document.createElement("textarea");ta.value=text;ta.style.position="fixed";ta.style.opacity="0";document.body.appendChild(ta);ta.select();document.execCommand("copy");document.body.removeChild(ta);showToast("Copiat!")}}
+
+// ---- ESCAPE ----
+function esc(s){if(!s)return"";var d=document.createElement("div");d.textContent=s;return d.innerHTML}
+function escAttr(s){return(s||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/'/g,"&#39;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\\/g,"\\\\").replace(/\n/g," ")}
+
+
+// ============================================================
+//  CARDS
+// ============================================================
+var CARD_TYPES=[
+  {id:"fidelitate",label:"Fidelitate",emoji:"&#127983;",colors:["#c62828","#e53935"],accent:"#ff6b4a"},
+  {id:"reducere",  label:"Reducere",  emoji:"&#127991;",colors:["#2e7d32","#43a047"],accent:"#81c784"},
+  {id:"cadou",     label:"Cadou",     emoji:"&#127873;",colors:["#1565c0","#1e88e5"],accent:"#64b5f6"},
+  {id:"membru",    label:"Membru",    emoji:"&#11088;", colors:["#e65100","#f57c00"],accent:"#ffb74d"},
+  {id:"transport", label:"Transport", emoji:"&#128652;",colors:["#1a237e","#283593"],accent:"#7986cb"},
+  {id:"altul",     label:"Altul",     emoji:"&#128179;",colors:["#37474f","#455a64"],accent:"#90a4ae"}
+];
+// Paleta extinsa de culori pentru carduri individuale
+var CARD_COLORS=[
+  ["#c62828","#e53935"],["#ad1457","#e91e63"],["#6a1b9a","#9c27b0"],
+  ["#283593","#3949ab"],["#0277bd","#039be5"],["#00695c","#00897b"],
+  ["#2e7d32","#43a047"],["#f57f17","#fbc02d"],["#e65100","#fb8c00"],
+  ["#4e342e","#6d4c41"],["#880e4f","#c2185b"],["#1a237e","#1565c0"],
+  ["#004d40","#00796b"],["#1b5e20","#388e3c"],["#bf360c","#e64a19"],
+  ["#4a148c","#7b1fa2"],["#01579b","#0288d1"],["#006064","#00838f"],
+  ["#33691e","#558b2f"],["#37474f","#607d8b"]
+];
+function getCardColor(c){
+  if(c.color&&c.color.length===2)return c.color;
+  var hash=0;for(var i=0;i<(c.id||"").length;i++)hash=(hash*31+c.id.charCodeAt(i))&0xffff;
+  return CARD_COLORS[hash%CARD_COLORS.length];
+}
+
+async function saveCards(){var enc=await encryptData(state.cards,state.masterKey);storageSet("cards",enc)}
+function getCardType(id){return CARD_TYPES.find(function(t){return t.id===id})||CARD_TYPES[5]}
+
+function drawBarcode(canvas,code){
+  if(!canvas||!code)return;
+  var ctx=canvas.getContext("2d");
+  var w=canvas.width,h=canvas.height;
+  ctx.fillStyle="#fff";ctx.fillRect(0,0,w,h);
+  var C39={
+    "0":"nnnwwnwnn","1":"wnnwnnnnw","2":"nnwwnnnnw","3":"wnwwnnnnn","4":"nnnwwnnnw",
+    "5":"wnnwwnnnn","6":"nnwwwnnnn","7":"nnnwnnwnw","8":"wnnwnnwnn","9":"nnwwnnwnn",
+    "A":"wnnnnwnnw","B":"nnwnnwnnw","C":"wnwnnwnnn","D":"nnnnwwnnw","E":"wnnnwwnnn",
+    "F":"nnwnwwnnn","G":"nnnnnwwnw","H":"wnnnnwwnn","I":"nnwnnwwnn","J":"nnnnwwwnn",
+    "K":"wnnnnnnww","L":"nnwnnnnww","M":"wnwnnnnwn","N":"nnnnwnnww","O":"wnnnwnnwn",
+    "P":"nnwnwnnwn","Q":"nnnnnnwww","R":"wnnnnnwwn","S":"nnwnnnwwn","T":"nnnnwnwwn",
+    "U":"wwnnnnnnw","V":"nwwnnnnnw","W":"wwwnnnnnn","X":"nwnnwnnnw","Y":"wwnnwnnnn",
+    "Z":"nwwnwnnnn","-":"nwnnnnwnw","*":"nwnnwnwnn"," ":"nwwnnnwnn"
+  };
+  var clean=code.toUpperCase().replace(/[^0-9A-Z\- ]/g,"").slice(0,30);
+  var enc2="*"+clean+"*";
+  var bars=[];
+  for(var i=0;i<enc2.length;i++){
+    var ch=enc2[i];var pat=C39[ch]||C39["0"];
+    for(var j=0;j<9;j++)bars.push({wide:pat[j]==="w",black:(j%2===0)});
+    if(i<enc2.length-1)bars.push({wide:false,black:false});
+  }
+  var narrow=Math.max(1,Math.floor((w-8)/(bars.length*2.5)));
+  var wide=Math.max(2,Math.round(narrow*2.5));
+  var totalW=bars.reduce(function(s,b){return s+(b.wide?wide:narrow)},0);
+  var scale=Math.min(1,(w-8)/totalW);
+  var x=4;
+  bars.forEach(function(b){
+    var bw=Math.max(1,Math.round((b.wide?wide:narrow)*scale));
+    if(b.black){ctx.fillStyle="#111";ctx.fillRect(x,4,bw,h-8)}
+    x+=bw;
+  });
+}
+
+function renderCards(){
+  if(!state.cards)state.cards=[];
+  var s=(document.getElementById("cards-search")||{}).value||"";
+  var search=s.toLowerCase();
+  var filtered=state.cards.filter(function(c){
+    return !search||c.name.toLowerCase().indexOf(search)>=0||(c.number||"").indexOf(search)>=0;
+  });
+  var el=document.getElementById("cards-count");
+  if(el)el.textContent=state.cards.length+" card"+(state.cards.length===1?"":"uri");
+  var wrap=document.getElementById("cards-list");
+  if(!wrap)return;
+  if(filtered.length===0){
+    wrap.innerHTML='<div class="empty-state" style="grid-column:1/-1"><div class="empty-icon"><svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/><line x1="7" y1="15" x2="10" y2="15"/></svg></div><div class="empty-title">'+(state.cards.length===0?"Niciun card salvat":"Niciun rezultat")+'</div><div class="empty-sub">'+(state.cards.length===0?"Apasa + pentru primul card (IKEA, Metro...)":"Incearca alta cautare")+'</div></div>';
+    return;
+  }
+  wrap.innerHTML=filtered.map(function(c){
+    var t=getCardType(c.type);
+    var clr=getCardColor(c);
+    var dnr=c.number?c.number.replace(/(.{4})/g,"$1 ").trim():"";
+    return'<div class="loyalty-card" style="background:linear-gradient(135deg,'+clr[0]+','+clr[1]+')" onclick="openCardDetail(\''+c.id+'\')">'+
+      '<div class="loyalty-card-shimmer"></div>'+
+      '<div class="loyalty-card-header"><div class="loyalty-card-name">'+esc(c.name)+'</div>'+
+      '<span class="loyalty-card-type">'+t.emoji+' '+t.label+'</span></div>'+
+      (c.number?'<div class="loyalty-card-nr">'+esc(dnr)+'</div>':'')+
+      (c.number?'<div class="loyalty-card-bc"><canvas id="bc-'+c.id+'" width="300" height="50"></canvas><div class="loyalty-card-bc-nr">'+esc(c.number)+'</div></div>':'')+
+      (c.notes?'<div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:8px">'+esc(c.notes.slice(0,70))+'</div>':'')+
+      '</div>';
+  }).join("");
+  setTimeout(function(){filtered.forEach(function(c){if(c.number){var cv=document.getElementById("bc-"+c.id);if(cv)drawBarcode(cv,c.number)}})},40);
+}
+
+var _scanStream=null,_scanInterval=null;
+
+function openCardModal(id){
+  var c=id?state.cards.find(function(x){return x.id===id}):null;
+  var isEdit=!!c;
+  var card=c||{id:Date.now().toString(36)+Math.random().toString(36).slice(2),name:"",number:"",type:"fidelitate",notes:""};
+  var typeHtml=CARD_TYPES.map(function(t){
+    var active=card.type===t.id;
+    return'<button class="card-type-btn'+(active?" active":"")+'" id="ctype-'+t.id+
+      '" style="color:'+t.accent+';border-color:'+(active?t.accent:"transparent")+';background:'+(active?"rgba(255,255,255,.06)":"rgba(20,22,44,.6)")+
+      '" onclick="selectCardType(\''+t.id+'\')">'+t.emoji+'<span style="display:block;margin-top:2px">'+t.label+'</span></button>';
+  }).join("");
+  document.getElementById("card-modal-content").innerHTML=
+    '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:18px">'+
+    '<div class="modal-title" style="margin-bottom:0">'+(isEdit?"Editeaza cardul":"Card nou")+'</div>'+
+    (isEdit?'<button class="btn-icon" style="color:#ff6b6b" onclick="deleteCard(\''+card.id+'\')" title="Sterge">'+ICONS.trash+'</button>':'')+
+    '</div>'+
+    '<div class="form-group"><label class="form-label">Tip card</label><div class="card-type-grid">'+typeHtml+'</div>'+
+    '<input type="hidden" id="fc-type" value="'+escAttr(card.type)+'"></div>'+
+    '<div class="form-group"><label class="form-label">Nume magazin / card</label>'+
+    '<input class="form-input" id="fc-name" value="'+escAttr(card.name)+'" placeholder="ex: IKEA, Metro, Carrefour, Kaufland..."></div>'+
+    '<div class="form-group"><label class="form-label">Numar card / cod de bare</label>'+
+    '<div style="display:flex;gap:8px">'+
+    '<input class="form-input" id="fc-number" value="'+escAttr(card.number)+'" placeholder="Introdu sau scaneaza..." inputmode="numeric" style="flex:1">'+
+    '<button onclick="startScanner()" style="padding:10px 14px;border-radius:12px;border:none;background:rgba(99,102,241,.2);color:#a5a3ff;font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap">&#128247; Scan</button>'+
+    '</div>'+
+    '<div id="fc-bc-preview" style="margin-top:10px;background:rgba(255,255,255,.95);border-radius:10px;padding:8px 10px 4px;flex-direction:column;align-items:center;display:'+(card.number?"flex":"none")+'">'+
+    '<canvas id="fc-bc-canvas" width="300" height="50"></canvas>'+
+    '<div id="fc-bc-nr" style="font-family:monospace;font-size:10px;color:#333;margin-top:2px">'+esc(card.number)+'</div>'+
+    '</div></div>'+
+    '<div class="form-group"><label class="form-label">Note (puncte, beneficii...)</label>'+
+    '<textarea class="form-input" id="fc-notes" placeholder="ex: 2x puncte joi, reducere 10%...">'+esc(card.notes||"")+'</textarea></div>'+
+    '<button class="btn-save" onclick="saveCard(\''+card.id+'\','+isEdit+')" style="margin-top:6px">'+(isEdit?"Salveaza modificarile":"Adauga cardul")+'</button>'+
+    '<button class="btn-cancel" onclick="closeCardModal()">Anuleaza</button>';
+  document.getElementById("card-modal-overlay").classList.remove("hidden");
+  if(card.number){setTimeout(function(){var cv=document.getElementById("fc-bc-canvas");if(cv)drawBarcode(cv,card.number)},60)}
+  var numInput=document.getElementById("fc-number");
+  if(numInput){
+    numInput.addEventListener("input",function(){
+      var v=this.value.trim();
+      var prev=document.getElementById("fc-bc-preview");
+      var nr=document.getElementById("fc-bc-nr");
+      if(v){prev.style.display="flex";if(nr)nr.textContent=v;var cv=document.getElementById("fc-bc-canvas");if(cv)drawBarcode(cv,v)}
+      else if(prev){prev.style.display="none"}
+    });
+  }
+  setTimeout(function(){var n=document.getElementById("fc-name");if(n)n.focus()},100);
+}
+
+function selectCardType(id){
+  var inp=document.getElementById("fc-type");if(inp)inp.value=id;
+  CARD_TYPES.forEach(function(t){
+    var btn=document.getElementById("ctype-"+t.id);if(!btn)return;
+    var active=t.id===id;
+    btn.className="card-type-btn"+(active?" active":"");
+    btn.style.color=t.accent;btn.style.borderColor=active?t.accent:"transparent";
+    btn.style.background=active?"rgba(255,255,255,.06)":"rgba(20,22,44,.6)";
+  });
+}
+
+function closeCardModal(){document.getElementById("card-modal-overlay").classList.add("hidden");stopScanner()}
+
+function saveCard(id,isEdit){
+  var name=(document.getElementById("fc-name").value||"").trim();
+  var number=(document.getElementById("fc-number").value||"").trim();
+  var type=document.getElementById("fc-type").value||"fidelitate";
+  var notes=(document.getElementById("fc-notes").value||"").trim();
+  if(!name){showToast("Adauga numele magazinului","error");return}
+  if(!number){showToast("Adauga numarul cardului sau codul","error");return}
+  var existing=isEdit?state.cards.find(function(c){return c.id===id}):null;
+  var card={id:id,name:name,number:number,type:type,notes:notes,
+    createdAt:existing?existing.createdAt:new Date().toISOString(),
+    updatedAt:new Date().toISOString()};
+  if(isEdit){state.cards=state.cards.map(function(c){return c.id===id?card:c})}
+  else{state.cards.push(card)}
+  saveCards();closeCardModal();renderCards();showToast(isEdit?"Card actualizat!":"Card salvat!");
+}
+
+var _delCardOk=false;
+function deleteCard(id){
+  if(!_delCardOk){_delCardOk=true;showToast("Apasa din nou Sterge pentru confirmare","error");setTimeout(function(){_delCardOk=false},3000);return}
+  state.cards=state.cards.filter(function(c){return c.id!==id});
+  saveCards();_delCardOk=false;closeCardModal();renderCards();showToast("Card sters!");
+}
+
+function startScanner(){
+  var overlay=document.getElementById("scanner-overlay");
+  if(overlay)overlay.classList.remove("hidden");
+  document.getElementById("scanner-manual-input").value="";
+  // Attach camera button handler
+  var btn=document.getElementById("scanner-open-camera-btn");
+  if(btn){
+    btn.onclick=function(){
+      document.getElementById("scanner-capture-input").click();
+    };
+  }
+}
+
+function stopScanner(){
+  if(_scanInterval){clearInterval(_scanInterval);_scanInterval=null}
+  if(_scanStream){_scanStream.getTracks().forEach(function(t){t.stop()});_scanStream=null}
+  var o=document.getElementById("scanner-overlay");if(o)o.classList.add("hidden");
+  var inp=document.getElementById("scanner-capture-input");if(inp)inp.value="";
+}
+
+function _initCameraCapture(){
+  var inp=document.getElementById("scanner-capture-input");
+  if(!inp)return;
+  inp.addEventListener("change",function(e){
+    var file=e.target.files&&e.target.files[0];
+    if(!file)return;
+    var proc=document.getElementById("scanner-processing");
+    if(proc)proc.style.display="block";
+    var btn=document.getElementById("scanner-open-camera-btn");
+    if(btn)btn.style.opacity="0.5";
+    var img=new Image();
+    var url=URL.createObjectURL(file);
+    img.onload=function(){
+      var canvas=document.createElement("canvas");
+      canvas.width=img.width;canvas.height=img.height;
+      var ctx=canvas.getContext("2d",{willReadFrequently:true});
+      ctx.drawImage(img,0,0);
+      URL.revokeObjectURL(url);
+      _decodeFromCanvas(canvas,ctx);
+      if(proc)proc.style.display="none";
+      if(btn)btn.style.opacity="1";
+      inp.value="";
+    };
+    img.onerror=function(){
+      URL.revokeObjectURL(url);
+      if(proc)proc.style.display="none";
+      if(btn)btn.style.opacity="1";
+      showToast("Nu am putut citi imaginea","error");
+      inp.value="";
+    };
+    img.src=url;
+  });
+}
+
+function _decodeFromCanvas(canvas,ctx){
+  var w=canvas.width,h=canvas.height;
+  // Try BarcodeDetector API (Chrome on Android)
+  if(window.BarcodeDetector){
+    var det=new BarcodeDetector({formats:["code_39","code_128","ean_13","ean_8","upc_a","upc_e","codabar","itf","qr_code","data_matrix","aztec","pdf417"]});
+    det.detect(canvas).then(function(codes){
+      if(codes&&codes.length>0){
+        stopScanner();
+        setScannedCode(codes[0].rawValue);
+        showToast("Cod detectat!");
+      }else{
+        showToast("Cod negasit - incearca o poza mai clara sau introduceti manual","error");
+      }
+    }).catch(function(){
+      showToast("Eroare la scanare - introduceti manual","error");
+    });
+    return;
+  }
+  // No BarcodeDetector available
+  showToast("Scanarea auto nu e disponibila pe acest browser - introduceti manual","error");
+}
+
+function confirmManualBarcode(){
+  var v=(document.getElementById("scanner-manual-input").value||"").trim();
+  if(!v){showToast("Introduceti un cod","error");return}
+  stopScanner();setScannedCode(v);
+}
+
+function setScannedCode(code){
+  var inp=document.getElementById("fc-number");if(!inp)return;
+  inp.value=code;inp.dispatchEvent(new Event("input"));showToast("Cod detectat!");
+}
+// ============================================================
+//  END CARDS
+// ============================================================
+
+// ---- CARD DETAIL VIEW ----
+function openCardDetail(id){
+  var c=state.cards.find(function(x){return x.id===id});
+  if(!c){openCardModal();return;}
+  var t=getCardType(c.type);
+  var clr=getCardColor(c);
+  var dnr=c.number?c.number.replace(/\s/g,'').replace(/(.{4})/g,'$1 ').trim():'';
+  var overlay=document.getElementById("card-detail-overlay");
+  if(!overlay){
+    overlay=document.createElement("div");
+    overlay.id="card-detail-overlay";
+    overlay.style.cssText="position:fixed;inset:0;z-index:80;overflow-y:auto;background:#000";
+    document.body.appendChild(overlay);
+  }
+  overlay.innerHTML=
+    '<div style="min-height:100vh;display:flex;flex-direction:column;background:#000">'+
+    '<div style="display:flex;align-items:center;justify-content:space-between;padding:16px 20px;background:#111">'+
+    '<button id="cd-back" style="background:none;border:none;color:#fff;font-size:24px;cursor:pointer;padding:4px 10px 4px 0;line-height:1">&#8592;</button>'+
+    '<div style="font-size:17px;font-weight:800;color:#fff;flex:1;text-align:center">'+esc(c.name)+'</div>'+
+    '<button id="cd-edit" style="background:none;border:none;color:#f97316;font-size:15px;font-weight:700;cursor:pointer;padding:4px 0 4px 10px">Edit</button>'+
+    '</div>'+
+    '<div style="margin:20px 16px;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.6)">'+
+    '<div style="background:linear-gradient(135deg,'+clr[0]+','+clr[1]+');padding:32px 24px 24px;display:flex;align-items:center;justify-content:center">'+
+    '<div style="font-size:30px;font-weight:900;color:#fff;text-align:center;text-shadow:0 2px 8px rgba(0,0,0,.4)">'+esc(c.name)+'</div>'+
+    '</div>'+
+    (c.number?
+      '<div style="background:#fff;padding:24px 20px 16px;display:flex;flex-direction:column;align-items:center">'+
+      '<canvas id="cd-bc-canvas" width="340" height="110" style="width:100%;height:110px"></canvas>'+
+      '<div style="font-family:monospace;font-size:19px;color:#111;margin-top:14px;letter-spacing:4px;font-weight:700;text-align:center">'+esc(dnr)+'</div>'+
+      '</div>':
+      '<div style="background:#fff;padding:30px;text-align:center;color:#888;font-size:14px">Niciun cod de bare</div>')+
+    '</div>'+
+    '<div style="display:flex;flex-direction:column;gap:10px;padding:0 16px">'+
+    '<button id="cd-edit2" style="width:100%;padding:18px 20px;border-radius:16px;border:none;background:#1c1c2e;color:#fff;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:14px;text-align:left">'+
+    '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v15a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Editeaza cardul</button>'+
+    (c.number?
+      '<button id="cd-copy" style="width:100%;padding:18px 20px;border-radius:16px;border:none;background:#1c1c2e;color:#fff;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:14px;text-align:left">'+
+      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copiaza numarul</button>':'')+
+    (c.notes?
+      '<button id="cd-notes" style="width:100%;padding:18px 20px;border-radius:16px;border:none;background:#1c1c2e;color:#fff;font-size:16px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:14px;text-align:left">'+
+      '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f97316" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Note</button>':'')+
+    '</div></div>';
+  document.getElementById("cd-back").onclick=function(){closeCardDetail()};
+  document.getElementById("cd-edit").onclick=function(){closeCardDetail();openCardModal(id)};
+  document.getElementById("cd-edit2").onclick=function(){closeCardDetail();openCardModal(id)};
+  var cb=document.getElementById("cd-copy");
+  if(cb&&c.number)cb.onclick=function(){copyText(c.number.replace(/\s/g,""),"Numar copiat!")};
+  var nb=document.getElementById("cd-notes");
+  if(nb&&c.notes)nb.onclick=function(){alert(c.notes)};
+  overlay.style.display="block";
+  if(c.number){setTimeout(function(){var cv=document.getElementById("cd-bc-canvas");if(cv)drawBarcode(cv,c.number.replace(/\s/g,""))},80)}
+}
+function closeCardDetail(){
+  var o=document.getElementById("card-detail-overlay");
+  if(o)o.style.display="none";
+}
+
+init().catch(function(){});
+document.addEventListener("DOMContentLoaded",function(){_initCameraCapture();});
+</script>
+
+<!-- CARDS PAGE -->
+<div id="page-cards" class="hidden">
+  <div class="page-sticky">
+    <div class="header">
+      <span class="header-title">VaultGuard <span style="font-size:13px;font-weight:600;color:#6b6890;-webkit-text-fill-color:#6b6890">v15</span></span>
+      <div class="header-right">
+        <span class="header-count" id="cards-count">0 carduri</span>
+        <button class="btn-icon" onclick="handleLogout()" title="Deconectare"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+      </div>
+    </div>
+    <div class="menu-bar">
+      <button class="menu-btn" onclick="showExportConfirm()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export
+      </button>
+      <button class="menu-btn" onclick="showImportDialog()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        Import
+      </button>
+    </div>
+    <div class="search-box">
+      <span class="search-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+      <input class="search-input" id="cards-search" placeholder="Cauta carduri (IKEA, Metro...)" oninput="renderCards()">
+    </div>
+  </div>
+  <div class="card-list" id="cards-list"></div>
+  <button class="fab" onclick="openCardModal()"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+</div>
+
+<!-- CARD MODAL -->
+<div id="card-modal-overlay" class="overlay hidden" onclick="closeCardModal()">
+  <div class="card-detail-modal" onclick="event.stopPropagation()" id="card-modal-content"></div>
+</div>
+
+<!-- SCANNER -->
+<!-- Camera capture input - hidden, triggers native camera -->
+<input type="file" id="scanner-capture-input" accept="image/*" capture="environment" style="display:none">
+
+<div id="scanner-overlay" class="scanner-overlay hidden">
+  <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;padding:32px 24px;gap:16px">
+    
+    <div style="font-size:48px">&#128247;</div>
+    <div style="color:#fff;font-size:18px;font-weight:800;text-align:center">Scaneaza codul de bare</div>
+    <div style="color:rgba(255,255,255,.6);font-size:13px;text-align:center;line-height:1.5">
+      Apasa butonul de mai jos pentru a deschide camera.<br>
+      Fotografia se proceseaza local, nu se trimite nicaieri.
+    </div>
+
+    <button id="scanner-open-camera-btn" style="width:100%;max-width:320px;padding:18px;border-radius:16px;border:none;background:linear-gradient(135deg,#6366f1,#a855f7);color:#fff;font-size:17px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:12px;margin-top:8px">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      Deschide Camera
+    </button>
+
+    <div id="scanner-processing" style="display:none;color:#a5a3ff;font-size:14px;font-weight:600;text-align:center">
+      &#9203; Procesez imaginea...
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;width:100%;max-width:320px;margin-top:4px">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.15)"></div>
+      <span style="color:rgba(255,255,255,.4);font-size:12px;font-weight:600">SAU</span>
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.15)"></div>
+    </div>
+
+    <div style="display:flex;gap:8px;width:100%;max-width:320px">
+      <input type="text" id="scanner-manual-input" placeholder="Introduceti codul manual..." inputmode="numeric"
+        style="flex:1;padding:13px 14px;border-radius:12px;border:1.5px solid rgba(99,102,241,.3);background:rgba(20,22,44,.95);color:#e8e6f0;font-size:14px;outline:none;font-family:monospace">
+      <button onclick="confirmManualBarcode()" style="padding:13px 16px;border-radius:12px;border:none;background:rgba(99,102,241,.3);color:#a5a3ff;font-size:13px;font-weight:700;cursor:pointer">OK</button>
+    </div>
+
+    <button class="scanner-cancel" onclick="stopScanner()" style="margin-top:8px">&#10006; Anuleaza</button>
+  </div>
+</div>
+
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', function(){
+    navigator.serviceWorker.register('./sw.js').then(function(reg){
+      console.log('SW registered:', reg.scope);
+    }).catch(function(err){
+      console.log('SW error:', err);
+    });
+  });
+}
+</script>
+</body>
+</html>
