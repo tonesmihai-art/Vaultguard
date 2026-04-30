@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technical Memo — VaultGuard</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #F8F7FF;
+    color: #374151;
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  .page {
+    max-width: 860px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 40px rgba(99,102,241,.10);
+    overflow: hidden;
+  }
+
+  /* ── HEADER ── */
+  .doc-header {
+    background: linear-gradient(135deg, #1E1B4B 0%, #312E81 60%, #4C1D95 100%);
+    padding: 40px 48px 36px;
+    color: #fff;
+  }
+  .doc-header .label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: #A5B4FC;
+    margin-bottom: 10px;
+  }
+  .doc-header h1 {
+    font-size: 38px;
+    font-weight: 800;
+    letter-spacing: -1px;
+    margin-bottom: 6px;
+    color: #fff;
+  }
+  .doc-header .subtitle {
+    font-size: 16px;
+    color: #C7D2FE;
+    font-weight: 500;
+    margin-bottom: 28px;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-top: 4px;
+  }
+  .meta-item {
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.12);
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .meta-item .meta-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #A5B4FC;
+    margin-bottom: 3px;
+  }
+  .meta-item .meta-val {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+  }
+
+  /* ── BODY ── */
+  .doc-body { padding: 48px; }
+
+  .section { margin-bottom: 44px; }
+
+  .section-title {
+    font-size: 18px;
+    font-weight: 800;
+    color: #1E1B4B;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #EDE9FE;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-title .num {
+    background: linear-gradient(135deg, #6366F1, #8B5CF6);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+    width: 26px; height: 26px;
+    border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .sub-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #4338CA;
+    margin: 20px 0 8px;
+  }
+
+  p { margin-bottom: 12px; color: #374151; line-height: 1.7; }
+
+  /* ── FILE TABLE ── */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 8px;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #E5E7EB;
+  }
+  thead tr {
+    background: #1E1B4B;
+    color: #fff;
+  }
+  thead th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #C7D2FE;
+  }
+  tbody tr:nth-child(odd) { background: #F9FAFB; }
+  tbody tr:nth-child(even) { background: #fff; }
+  tbody tr:hover { background: #EEF2FF; }
+  tbody td {
+    padding: 10px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid #F3F4F6;
+    vertical-align: top;
+  }
+  .code { font-family: 'Courier New', monospace; color: #6366F1; font-weight: 700; font-size: 12px; }
+  .type-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+    font-weight: 600;
+    background: #EDE9FE;
+    color: #5B21B6;
+  }
+
+  /* ── BULLETS ── */
+  ul.feat { list-style: none; padding: 0; }
+  ul.feat li {
+    padding: 7px 0 7px 28px;
+    position: relative;
+    border-bottom: 1px solid #F3F4F6;
+    font-size: 13.5px;
+    color: #374151;
+  }
+  ul.feat li:last-child { border-bottom: none; }
+  ul.feat li::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 14px;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366F1, #A855F7);
+  }
+  ul.feat li strong { color: #1E1B4B; }
+
+  /* ── REC TABLE ── */
+  .priority { font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 12px; white-space: nowrap; }
+  .p-high { background: #FEE2E2; color: #DC2626; }
+  .p-med  { background: #FEF3C7; color: #D97706; }
+  .p-low  { background: #D1FAE5; color: #059669; }
+
+  /* ── CONCLUSION BOX ── */
+  .conclusion-box {
+    background: linear-gradient(135deg, #EDE9FE, #F5F3FF);
+    border-left: 4px solid #6366F1;
+    border-radius: 0 10px 10px 0;
+    padding: 20px 24px;
+    margin-top: 8px;
+  }
+  .conclusion-box p { margin: 0; color: #3730A3; font-weight: 500; }
+
+  /* ── FOOTER ── */
+  .doc-footer {
+    background: #F9FAFB;
+    border-top: 1px solid #E5E7EB;
+    padding: 16px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 12px;
+    color: #9CA3AF;
+  }
+
+  @media print {
+    body { background: white; }
+    .page { box-shadow: none; margin: 0; border-radius: 0; max-width: 100%; }
+    tbody tr:hover { background: inherit; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- HEADER -->
+  <div class="doc-header">
+    <div class="label">Technical Memo</div>
+    <h1>VaultGuard</h1>
+    <div class="subtitle">Project Structure &amp; Architecture Analysis</div>
+    <div class="meta-grid">
+      <div class="meta-item">
+        <div class="meta-label">Analysis Date</div>
+        <div class="meta-val">May 1, 2026</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Version</div>
+        <div class="meta-val">VaultGuard v15</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Project Type</div>
+        <div class="meta-val">PWA · Open Source</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">App Language</div>
+        <div class="meta-val">Romanian (ro)</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Category</div>
+        <div class="meta-val">Productivity · Utility</div>
+      </div>
+      <div class="meta-item">
+        <div class="meta-label">Memo Author</div>
+        <div class="meta-val">Claude (Anthropic)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div class="doc-body">
+
+    <!-- 1. Descriere -->
+    <div class="section">
+      <div class="section-title"><span class="num">1</span> Descriere Generală</div>
+      <p>
+        <strong>VaultGuard</strong> este un manager de parole, notițe și carduri de fidelitate —
+        gratuit, open source și fără cloud. Aplicația rulează complet local în browser, fără
+        a transmite date către niciun server extern. Criptarea datelor se realizează cu
+        <strong>AES-256</strong>, asigurând confidențialitatea exclusiv pe dispozitivul utilizatorului.
+      </p>
+      <p>
+        Proiectul este implementat ca o aplicație <strong>single-file</strong> (tot codul CSS,
+        JavaScript și HTML se află într-un singur fișier <span class="code">index.html</span>),
+        ceea ce simplifică distribuția și instalarea. Interfața este proiectată
+        <strong>mobile-first</strong>, cu lățime maximă de 480px și suport complet pentru
+        instalare ca PWA pe iOS, Android și desktop.
+      </p>
+    </div>
+
+    <!-- 2. Structura fișierelor -->
+    <div class="section">
+      <div class="section-title"><span class="num">2</span> Structura Fișierelor</div>
+      <p>Proiectul conține <strong>8 fișiere</strong> organizate în directorul rădăcină și un subdirector pentru iconuri:</p>
+      <table>
+        <thead>
+          <tr>
+            <th>Fișier / Director</th>
+            <th>Tip</th>
+            <th>Rol</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="code">index.html</span></td>
+            <td><span class="type-badge">HTML/CSS/JS</span></td>
+            <td>Aplicația completă — interfață, logică, criptare AES-256 (single-file)</td>
+          </tr>
+          <tr>
+            <td><span class="code">manifest.json</span></td>
+            <td><span class="type-badge">PWA Manifest</span></td>
+            <td>Configurare PWA: nume, icoane, culori, orientare, limbă (ro)</td>
+          </tr>
+          <tr>
+            <td><span class="code">sw.js</span></td>
+            <td><span class="type-badge">Service Worker</span></td>
+            <td>Cache offline v15 — gestionează instalare, activare și fetch</td>
+          </tr>
+          <tr>
+            <td><span class="code">start.bat</span></td>
+            <td><span class="type-badge">Script Windows</span></td>
+            <td>Lansează un server local pe portul 8765 pentru deschiderea în browser</td>
+          </tr>
+          <tr>
+            <td><span class="code">README.md</span></td>
+            <td><span class="type-badge">Documentație</span></td>
+            <td>Descriere scurtă a proiectului (parole, notițe, carduri, open source)</td>
+          </tr>
+          <tr>
+            <td><span class="code">readme.txt</span></td>
+            <td><span class="type-badge">Documentație</span></td>
+            <td>Instrucțiuni instalare PWA pe Windows (Chrome / Edge)</td>
+          </tr>
+          <tr>
+            <td><span class="code">icons/icon-192.png</span></td>
+            <td><span class="type-badge">Imagine PNG</span></td>
+            <td>Iconiță PWA 192×192px (any + maskable)</td>
+          </tr>
+          <tr>
+            <td><span class="code">icons/icon-512.png</span></td>
+            <td><span class="type-badge">Imagine PNG</span></td>
+            <td>Iconiță PWA 512×512px (any + maskable)</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 3. Arhitectură -->
+    <div class="section">
+      <div class="section-title"><span class="num">3</span> Arhitectură Tehnică</div>
+
+      <div class="sub-title">3.1 Aplicație Single-File</div>
+      <p>
+        Toată logica aplicației — stilizare CSS, interfața HTML și codul JavaScript (inclusiv
+        criptarea) — este înglobată în <span class="code">index.html</span>. Această abordare
+        elimină dependențele externe la runtime și simplifică distribuția: utilizatorul poate
+        partaja sau arhiva întreaga aplicație printr-un singur fișier.
+      </p>
+
+      <div class="sub-title">3.2 Progressive Web App (PWA)</div>
+      <p>
+        Aplicația este configurată ca PWA complet funcțional, cu suport pentru instalare nativă
+        pe orice platformă modernă. Fișierul <span class="code">manifest.json</span> definește
+        identitatea vizuală și comportamentul la instalare (modul <em>standalone</em>, culori,
+        iconuri, orientare portrait). Service Worker-ul (<span class="code">sw.js</span>, versiunea
+        <strong>v15</strong>) implementează o strategie <em>cache-first</em> pentru toate
+        asset-urile, garantând funcționarea offline după prima încărcare.
+      </p>
+
+      <div class="sub-title">3.3 Design Mobile-First</div>
+      <p>
+        Interfața este construită pentru ecrane mobile, cu lățime maximă de <strong>480px</strong>
+        și layout centrat pe desktop. Tema vizuală folosește un gradient întunecat
+        (deep indigo / purple — <span class="code">#0c0e1a → #1a1040</span>), cu accente violet
+        (<span class="code">#6366f1</span>, <span class="code">#a855f7</span>).
+        Animațiile CSS (<em>slideUp</em>, <em>fadeIn</em>, <em>fadeInScale</em>) asigură o experiență fluidă pe touch-screen.
+      </p>
+
+      <div class="sub-title">3.4 Securitate &amp; Criptare</div>
+      <p>
+        Datele utilizatorului sunt criptate cu <strong>AES-256</strong>. Nu există comunicare cu
+        servere externe — toate operațiunile se desfășoară local, în browser. Modelul de securitate
+        este bazat pe o <strong>parolă master</strong> introdusă la login, fără recuperare externă.
+      </p>
+    </div>
+
+    <!-- 4. Funcționalități -->
+    <div class="section">
+      <div class="section-title"><span class="num">4</span> Funcționalități Identificate</div>
+      <p>Pe baza analizei codului sursă, aplicația include:</p>
+      <ul class="feat">
+        <li><strong>Manager parole</strong> — stocare credențiale cu titlu, utilizator, parolă, URL și categorie, cu căutare și filtrare în timp real.</li>
+        <li><strong>Notițe criptate</strong> — pagină dedicată pentru note personale, separate de parole.</li>
+        <li><strong>Carduri de fidelitate</strong> — modul pentru stocarea și gestionarea cardurilor de loialitate.</li>
+        <li><strong>Autentificare cu parolă master</strong> — ecran de login dedicat cu toggle vizibilitate parolă.</li>
+        <li><strong>Categorii vizuale</strong> — sistem de categorii cu iconuri colorate pe grid 4 coloane (Social, Email, Banking etc.).</li>
+        <li><strong>Căutare în timp real</strong> — câmp de căutare cu filtrare instantanee a intrărilor.</li>
+        <li><strong>Interfață modală</strong> — adăugare / editare intrări prin modal animat tip bottom-sheet (slideUp).</li>
+        <li><strong>Buton FAB</strong> — buton flotant de adăugare rapidă, fixat deasupra barei de navigare.</li>
+        <li><strong>Funcționare offline completă</strong> — prin Service Worker cu cache v15.</li>
+        <li><strong>Instalare PWA</strong> — suport nativ Chrome, Edge, Safari (iOS) și Android.</li>
+      </ul>
+    </div>
+
+    <!-- 5. Observații -->
+    <div class="section">
+      <div class="section-title"><span class="num">5</span> Observații &amp; Recomandări</div>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:100px">Prioritate</th>
+            <th>Observație</th>
+            <th>Recomandare</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="priority p-high">Ridicată</span></td>
+            <td>Fără teste automate identificate</td>
+            <td>Introducerea unor teste de bază pentru logica de criptare / decriptare</td>
+          </tr>
+          <tr>
+            <td><span class="priority p-med">Medie</span></td>
+            <td>Fișierul <span class="code">index.html</span> este un monolit (&gt;55.000 tokens)</td>
+            <td>Separarea CSS și JS în fișiere distincte îmbunătățește mentenabilitatea</td>
+          </tr>
+          <tr>
+            <td><span class="priority p-med">Medie</span></td>
+            <td>Service Worker la versiunea v15 — actualizări frecvente, fără changelog</td>
+            <td>Documentarea modificărilor într-un fișier <span class="code">CHANGELOG.md</span></td>
+          </tr>
+          <tr>
+            <td><span class="priority p-low">Scăzută</span></td>
+            <td><span class="code">readme.txt</span> conține caractere corupte (encoding greșit)</td>
+            <td>Re-salvare cu encoding UTF-8 pentru instrucțiuni lizibile</td>
+          </tr>
+          <tr>
+            <td><span class="priority p-low">Scăzută</span></td>
+            <td><span class="code">start.bat</span> fără suport non-Windows</td>
+            <td>Adăugarea unui <span class="code">start.sh</span> pentru macOS / Linux</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Concluzie -->
+    <div class="section">
+      <div class="section-title"><span class="num">★</span> Concluzie</div>
+      <div class="conclusion-box">
+        <p>
+          VaultGuard este un proiect bine definit, cu arhitectură coerentă și un scop clar:
+          manager de date sensibile, gratuit, offline și open source. Abordarea single-file
+          simplifică distribuția și este potrivită pentru proiectele individuale. Principalele
+          oportunități de îmbunătățire vizează <strong>structurarea codului</strong>,
+          <strong>testarea automată</strong> și <strong>documentarea mai detaliată</strong>.
+        </p>
+      </div>
+    </div>
+
+  </div><!-- /doc-body -->
+
+  <!-- FOOTER -->
+  <div class="doc-footer">
+    <span>VaultGuard · Analiză Structură Proiect</span>
+    <span>Generat de Claude (Anthropic) · 1 Mai 2026</span>
+  </div>
+
+</div><!-- /page -->
+</body>
+</html>
