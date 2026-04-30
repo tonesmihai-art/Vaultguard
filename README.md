@@ -1,3 +1,4 @@
 # Vaultguard
-parole, notite si carduri 
-Am făcut un manager de parole,notite si carduri de fidelitate gratuit, fără cloud, open source
+Passwords, notes and cards
+This is a manager of passwords, notes and cards , free to use, no cloud opensourse
+ Run the link and instal from browser.
